@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>JUEGO PYMES-PALMER · Trivia que te hace subir</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   CIMA — Design tokens
+   ============================================================ */
+:root{
+  --bg-grad: radial-gradient(circle at 18% -8%, #2c2470 0%, transparent 52%),
+             radial-gradient(circle at 100% 105%, #0c3b45 0%, transparent 52%),
+             linear-gradient(180deg,#0a0e27,#070a1c 70%);
+  --surface: rgba(255,255,255,0.055);
+  --surface-2: rgba(255,255,255,0.09);
+  --border: rgba(255,255,255,0.13);
+  --border-strong: rgba(255,255,255,0.22);
+  --text-0:#f4f6ff;
+  --text-1:#aab0d6;
+  --text-2:#7a80a8;
+  --violet:#7c6cf6;
+  --violet-2:#5b4fe0;
+  --teal:#22e0c4;
+  --gold:#ffc861;
+  --gold-2:#ffb02e;
+  --coral:#ff6b7a;
+  --shadow-soft: 0 10px 36px rgba(4,4,20,0.45);
+  --shadow-pop: 0 18px 50px rgba(124,108,246,0.35);
+  --radius-l:26px;
+  --radius-m:18px;
+  --radius-s:12px;
+  --font-display:'Space Grotesk', sans-serif;
+  --font-body:'Inter', sans-serif;
+  --font-mono:'JetBrains Mono', monospace;
+}
+[data-theme="light"]{
+  --bg-grad: radial-gradient(circle at 15% -10%, #e3ddff 0%, transparent 55%),
+             radial-gradient(circle at 100% 110%, #cdf5ee 0%, transparent 55%),
+             linear-gradient(180deg,#f9faff,#eef0f9 70%);
+  --surface: rgba(255,255,255,0.62);
+  --surface-2: rgba(255,255,255,0.85);
+  --border: rgba(30,30,60,0.09);
+  --border-strong: rgba(30,30,60,0.16);
+  --text-0:#161a33;
+  --text-1:#565b7c;
+  --text-2:#888fb0;
+  --violet:#6c5ce7;
+  --violet-2:#5341d6;
+  --teal:#0aab95;
+  --gold:#dd9a2c;
+  --gold-2:#c98412;
+  --coral:#e0535f;
+  --shadow-soft: 0 10px 30px rgba(40,40,90,0.10);
+  --shadow-pop: 0 18px 40px rgba(108,92,231,0.22);
+}
+
+*{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  font-family: var(--font-body);
+  background: var(--bg-grad);
+  background-attachment: fixed;
+  color: var(--text-0);
+  min-height:100vh;
+  transition: background .4s ease, color .4s ease;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 26px 26px;
+  opacity:.5;
+}
+[data-theme="light"] body::before{ background-image: radial-gradient(rgba(20,20,50,0.035) 1px, transparent 1px); }
+
+#app{ position:relative; z-index:1; max-width:560px; margin:0 auto; min-height:100vh; padding: 18px 18px 48px; display:flex; flex-direction:column; }
+@media(min-width:760px){ #app{ max-width:680px; padding:32px 32px 56px; } }
+
+h1,h2,h3,.display{ font-family: var(--font-display); letter-spacing:-0.01em; }
+.mono{ font-family: var(--font-mono); }
+button{ font-family: inherit; cursor:pointer; border:none; background:none; color:inherit; }
+input{ font-family: inherit; }
+a{ color:inherit; }
+
+/* ---------- glass surfaces ---------- */
+.glass{
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-soft);
+}
+.glass-tight{ border-radius: var(--radius-m); }
+
+/* ---------- top bar ---------- */
+.topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; }
+.brand{ display:flex; align-items:center; gap:9px; }
+.brand-mark{ width:34px; height:34px; display:grid; place-items:center; border-radius:11px;
+  background: linear-gradient(145deg, var(--violet), var(--violet-2)); box-shadow: var(--shadow-pop); flex:none; }
+.brand-name{ font-family:var(--font-display); font-weight:700; font-size:19px; letter-spacing:-0.02em; }
+.brand-name span{ color: var(--gold); }
+
+.icon-btn{ width:40px; height:40px; border-radius:13px; display:grid; place-items:center;
+  background:var(--surface-2); border:1px solid var(--border); color:var(--text-1); transition:transform .15s ease, color .15s ease, border-color .15s ease; }
+.icon-btn:hover{ color:var(--text-0); border-color:var(--border-strong); transform:translateY(-1px); }
+.icon-btn:active{ transform: scale(.93); }
+
+/* ============================================================
+   HOME
+   ============================================================ */
+.user-card{ padding:22px 22px 24px; margin-bottom:16px; position:relative; overflow:hidden; }
+.user-card::after{ content:""; position:absolute; width:200px; height:200px; border-radius:50%;
+  background: radial-gradient(circle, rgba(124,108,246,0.35), transparent 70%); top:-90px; right:-60px; pointer-events:none; }
+.user-row{ display:flex; align-items:center; gap:14px; position:relative; }
+.avatar{ width:58px; height:58px; border-radius:18px; flex:none; display:grid; place-items:center;
+  background: linear-gradient(150deg, var(--gold), var(--gold-2)); color:#241500; font-family:var(--font-display); font-weight:700; font-size:21px;
+  box-shadow: 0 8px 22px rgba(255,193,97,0.35); }
+.user-meta{ flex:1; min-width:0; }
+.user-greeting{ font-size:13px; color:var(--text-1); margin-bottom:3px; }
+.name-input{ background:transparent; border:none; outline:none; color:var(--text-0); font-family:var(--font-display);
+  font-weight:600; font-size:20px; width:100%; padding:0; border-bottom:1px dashed transparent; }
+.name-input:focus{ border-bottom-color: var(--border-strong); }
+.level-pill{ display:inline-flex; align-items:center; gap:6px; margin-top:6px; padding:4px 10px 4px 6px; border-radius:999px;
+  background:var(--surface-2); border:1px solid var(--border); font-size:12px; font-weight:600; color: var(--gold); }
+.level-pill .dot{ width:7px; height:7px; border-radius:50%; background:var(--gold); box-shadow:0 0 8px var(--gold); }
+
+.xp-block{ margin-top:18px; }
+.xp-row{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:7px; }
+.xp-row .lbl{ font-size:12px; color:var(--text-1); text-transform:uppercase; letter-spacing:.06em; font-weight:600;}
+.xp-row .val{ font-family:var(--font-mono); font-size:12px; color:var(--text-1); }
+.bar-track{ height:10px; border-radius:99px; background:var(--surface-2); border:1px solid var(--border); overflow:hidden; }
+.bar-fill{ height:100%; border-radius:99px; background:linear-gradient(90deg, var(--violet), var(--teal)); transition:width .9s cubic-bezier(.2,.9,.25,1); }
+
+.stat-row{ display:flex; gap:10px; margin-top:18px; }
+.stat-chip{ flex:1; padding:12px 12px; border-radius:var(--radius-s); background:var(--surface-2); border:1px solid var(--border); text-align:center; }
+.stat-chip .num{ font-family:var(--font-mono); font-weight:700; font-size:17px; display:flex; align-items:center; justify-content:center; gap:5px;}
+.stat-chip .lbl{ font-size:10.5px; color:var(--text-1); text-transform:uppercase; letter-spacing:.05em; margin-top:3px; }
+.flame{ color: var(--coral); }
+
+.cta-main{ width:100%; margin-top:18px; padding:18px 20px; border-radius:20px; display:flex; align-items:center; justify-content:center; gap:10px;
+  background: linear-gradient(120deg, var(--violet), var(--violet-2) 60%, var(--teal) 130%); color:#fff; font-family:var(--font-display); font-weight:700; font-size:17px;
+  box-shadow: var(--shadow-pop); position:relative; overflow:hidden; transition: transform .18s ease, box-shadow .18s ease; }
+.cta-main:hover{ transform:translateY(-2px); box-shadow:0 22px 56px rgba(124,108,246,0.45); }
+.cta-main:active{ transform: scale(.98); }
+.cta-main .shine{ position:absolute; inset:0; background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,.28) 50%, transparent 70%); transform:translateX(-120%); animation: shine 3.2s ease-in-out infinite; }
+@keyframes shine{ 0%,60%{transform:translateX(-120%);} 100%{transform:translateX(120%);} }
+
+.section-label{ font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text-1); margin: 22px 2px 10px; display:flex; align-items:center; gap:7px;}
+
+.chip-row{ display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; margin-bottom:4px; scrollbar-width:none;}
+.chip-row::-webkit-scrollbar{ display:none; }
+.chip{ flex:none; padding:9px 15px; border-radius:999px; background:var(--surface); border:1px solid var(--border); font-size:13.5px; font-weight:600; color:var(--text-1); transition: all .15s ease;}
+.chip.active{ background: linear-gradient(120deg, var(--violet), var(--violet-2)); color:#fff; border-color:transparent; box-shadow:0 6px 18px rgba(124,108,246,0.3);}
+.chip:hover:not(.active){ color:var(--text-0); border-color:var(--border-strong);}
+
+.quick-row{ display:flex; gap:12px; margin-top:6px; }
+.quick-card{ flex:1; padding:16px; display:flex; flex-direction:column; gap:8px; transition:transform .15s ease, border-color .15s ease; }
+.quick-card:hover{ transform:translateY(-2px); border-color:var(--border-strong); }
+.quick-card .qicon{ width:34px; height:34px; border-radius:10px; display:grid; place-items:center; background:var(--surface-2); }
+.quick-card .qtitle{ font-weight:700; font-size:14.5px; }
+.quick-card .qsub{ font-size:11.5px; color:var(--text-1); }
+
+.footer-note{ text-align:center; font-size:12px; color:var(--text-2); margin-top:30px; line-height:1.6; }
+
+/* ============================================================
+   PLAY SCREEN
+   ============================================================ */
+.play-top{ display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.cat-chip{ font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; padding:6px 12px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border); color:var(--teal); flex:none; }
+.q-progress-text{ font-family:var(--font-mono); font-size:12.5px; color:var(--text-1); flex:1; text-align:right; }
+
+.path-strip{ display:flex; gap:6px; margin-bottom:18px; overflow-x:auto; padding:4px 2px 10px; scrollbar-width:none; }
+.path-strip::-webkit-scrollbar{display:none;}
+.path-node{ flex:none; width:30px; height:30px; border-radius:10px; display:grid; place-items:center; font-family:var(--font-mono); font-size:10.5px; font-weight:700;
+  background:var(--surface-2); border:1px solid var(--border); color:var(--text-2); transition: all .3s ease; }
+.path-node.done{ background: linear-gradient(150deg, var(--gold), var(--gold-2)); color:#241500; border-color:transparent; }
+.path-node.current{ background: linear-gradient(150deg, var(--violet), var(--violet-2)); color:#fff; border-color:transparent; box-shadow:0 0 0 4px rgba(124,108,246,0.22); transform:scale(1.12); }
+
+.timer-wrap{ display:flex; justify-content:center; margin-bottom:6px; }
+.timer-ring-box{ position:relative; width:74px; height:74px; }
+.timer-ring-box svg{ transform:rotate(-90deg); width:74px; height:74px; }
+.timer-ring-bg{ fill:none; stroke:var(--surface-2); stroke-width:6; }
+.timer-ring-fg{ fill:none; stroke:var(--teal); stroke-width:6; stroke-linecap:round; transition: stroke-dashoffset 1s linear, stroke .3s ease; }
+.timer-num{ position:absolute; inset:0; display:grid; place-items:center; font-family:var(--font-mono); font-weight:700; font-size:19px; }
+
+.q-card{ padding:26px 22px; margin-top:14px; }
+.q-text{ font-family:var(--font-display); font-weight:600; font-size:20px; line-height:1.4; margin-bottom:22px; }
+@media(min-width:760px){ .q-text{ font-size:23px; } }
+
+.answers-grid{ display:grid; grid-template-columns:1fr; gap:11px; }
+@media(min-width:600px){ .answers-grid{ grid-template-columns:1fr 1fr; } }
+
+.answer-btn{ display:flex; align-items:center; gap:12px; text-align:left; padding:15px 16px; border-radius:16px; background:var(--surface-2);
+  border:1.5px solid var(--border); font-size:15px; font-weight:600; color:var(--text-0); transition: all .16s ease; position:relative; }
+.answer-btn:hover:not(.locked):not(.correct):not(.wrong){ border-color: var(--violet); background: rgba(124,108,246,0.10); transform:translateY(-1px); }
+.answer-btn .letter{ width:26px; height:26px; border-radius:8px; flex:none; display:grid; place-items:center; background:var(--surface); border:1px solid var(--border);
+  font-family:var(--font-mono); font-size:12px; font-weight:700; color:var(--text-1); }
+.answer-btn.correct{ background: rgba(34,224,196,0.16); border-color: var(--teal); color: var(--teal); }
+.answer-btn.correct .letter{ background:var(--teal); color:#06281f; border-color:transparent; }
+.answer-btn.wrong{ background: rgba(255,107,122,0.14); border-color: var(--coral); color: var(--coral); animation: shake .42s ease; }
+.answer-btn.wrong .letter{ background:var(--coral); color:#2a0a0d; border-color:transparent; }
+.answer-btn.faded{ opacity:.32; pointer-events:none; }
+.answer-btn.locked{ pointer-events:none; }
+.answer-btn .mark{ margin-left:auto; font-size:16px; }
+@keyframes shake{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-6px);} 40%{transform:translateX(5px);} 60%{transform:translateX(-4px);} 80%{transform:translateX(3px);} }
+
+.audience-box{ margin-top:14px; padding:14px 16px; }
+.audience-row{ display:flex; align-items:center; gap:10px; margin-bottom:8px; font-size:13px; }
+.audience-row:last-child{ margin-bottom:0; }
+.audience-row .al{ width:18px; font-family:var(--font-mono); font-weight:700; color:var(--text-1); flex:none;}
+.audience-bar-track{ flex:1; height:8px; border-radius:99px; background:var(--surface-2); overflow:hidden; }
+.audience-bar-fill{ height:100%; background:linear-gradient(90deg,var(--violet),var(--teal)); border-radius:99px; transition:width .8s ease; }
+.audience-pct{ font-family:var(--font-mono); font-size:12px; color:var(--text-1); width:34px; text-align:right; flex:none;}
+
+.lifelines{ display:flex; gap:10px; margin:16px 0 4px; }
+.life-btn{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 6px; border-radius:14px; background:var(--surface); border:1px solid var(--border); font-size:11px; font-weight:600; color:var(--text-1); transition:all .15s ease;}
+.life-btn .lemo{ font-size:18px; }
+.life-btn:hover:not(:disabled){ border-color:var(--violet); color:var(--text-0); transform:translateY(-1px);}
+.life-btn:disabled{ opacity:.3; }
+
+.feedback-banner{ margin-top:16px; padding:15px 18px; border-radius:16px; display:flex; align-items:center; gap:12px; font-weight:600; font-size:14.5px; animation: rise .35s ease; }
+.feedback-banner.ok{ background: rgba(34,224,196,0.14); border:1px solid var(--teal); color:var(--teal); }
+.feedback-banner.bad{ background: rgba(255,107,122,0.14); border:1px solid var(--coral); color:var(--coral); }
+.feedback-banner .xp-gain{ margin-left:auto; font-family:var(--font-mono); font-size:13px; }
+@keyframes rise{ from{ opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+.continue-btn{ margin-top:14px; width:100%; padding:14px; border-radius:16px; background:var(--surface-2); border:1px solid var(--border-strong); font-weight:700; }
+.continue-btn:hover{ border-color:var(--violet); }
+
+/* ============================================================
+   RESULTS
+   ============================================================ */
+.results-hero{ text-align:center; padding:34px 22px 26px; }
+.score-ring-box{ width:160px; height:160px; margin:0 auto 16px; position:relative; }
+.score-ring-box svg{ transform:rotate(-90deg); width:160px; height:160px; }
+.score-ring-bg{ fill:none; stroke:var(--surface-2); stroke-width:11; }
+.score-ring-fg{ fill:none; stroke-linecap:round; stroke-width:11; transition: stroke-dashoffset 1.1s cubic-bezier(.2,.9,.25,1); }
+.score-ring-label{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.score-ring-label .pct{ font-family:var(--font-display); font-weight:700; font-size:34px; }
+.score-ring-label .frac{ font-family:var(--font-mono); font-size:12.5px; color:var(--text-1); margin-top:2px;}
+.results-title{ font-family:var(--font-display); font-weight:700; font-size:21px; margin-bottom:6px; }
+.results-sub{ font-size:13.5px; color:var(--text-1); max-width:340px; margin:0 auto; line-height:1.55; }
+
+.results-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:18px 0; }
+.rs-card{ padding:14px 8px; text-align:center; }
+.rs-card .num{ font-family:var(--font-mono); font-weight:700; font-size:18px; }
+.rs-card .lbl{ font-size:10px; color:var(--text-1); text-transform:uppercase; letter-spacing:.04em; margin-top:3px; }
+
+.badge-unlock-row{ display:flex; gap:10px; overflow-x:auto; padding:6px 2px 10px; scrollbar-width:none;}
+.badge-unlock-row::-webkit-scrollbar{display:none;}
+.badge-card-mini{ flex:none; width:108px; padding:14px 10px; text-align:center; animation: popIn .5s cubic-bezier(.2,.9,.25,1.3) both; }
+.badge-card-mini .bicon{ font-size:26px; margin-bottom:6px; }
+.badge-card-mini .bname{ font-size:11.5px; font-weight:700; line-height:1.3; }
+@keyframes popIn{ from{ opacity:0; transform:scale(.6) translateY(10px);} to{opacity:1; transform:scale(1) translateY(0);} }
+
+.reco-box{ padding:16px 18px; margin-top:6px; display:flex; gap:12px; align-items:flex-start; }
+.reco-box .ricon{ font-size:20px; flex:none; }
+.reco-box p{ font-size:13.5px; color:var(--text-1); line-height:1.55; }
+.reco-box b{ color:var(--text-0); }
+
+.results-actions{ display:flex; flex-direction:column; gap:10px; margin-top:20px; }
+.btn-secondary{ width:100%; padding:14px; border-radius:16px; background:var(--surface-2); border:1px solid var(--border-strong); font-weight:700; font-size:14.5px; transition:all .15s ease;}
+.btn-secondary:hover{ border-color:var(--violet); }
+
+/* ============================================================
+   PROGRESS / ACHIEVEMENTS OVERLAY
+   ============================================================ */
+.overlay{ position:fixed; inset:0; z-index:50; background:rgba(4,4,16,0.55); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  display:flex; align-items:flex-end; justify-content:center; animation:fadeIn .25s ease; }
+[data-theme="light"] .overlay{ background:rgba(20,20,50,0.28); }
+@keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+@media(min-width:620px){ .overlay{ align-items:center; } }
+.sheet{ width:100%; max-width:560px; max-height:88vh; overflow-y:auto; border-radius:28px 28px 0 0; padding:22px 20px 30px; animation:slideUp .32s cubic-bezier(.2,.9,.25,1); }
+@media(min-width:620px){ .sheet{ border-radius:28px; max-height:84vh; } }
+@keyframes slideUp{ from{ transform:translateY(40px); opacity:0;} to{transform:translateY(0); opacity:1;} }
+.sheet-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+.sheet-title{ font-family:var(--font-display); font-weight:700; font-size:19px; }
+
+.week-strip{ display:flex; gap:7px; justify-content:space-between; margin:14px 0 6px; }
+.week-day{ flex:1; text-align:center; }
+.week-day .wd-lbl{ font-size:10px; color:var(--text-2); margin-bottom:6px; text-transform:uppercase; }
+.week-day .wd-dot{ width:30px; height:30px; border-radius:10px; margin:0 auto; display:grid; place-items:center; background:var(--surface-2); border:1px solid var(--border); font-size:13px; }
+.week-day .wd-dot.filled{ background:linear-gradient(150deg,var(--coral),#ff9a6b); border-color:transparent; }
+
+.badges-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:11px; margin-top:8px; }
+@media(min-width:480px){ .badges-grid{ grid-template-columns:repeat(3,1fr); } }
+.badge-card{ padding:14px 10px; text-align:center; }
+.badge-card .bicon{ font-size:24px; margin-bottom:6px; }
+.badge-card.locked{ opacity:.4; }
+.badge-card .bname{ font-size:12px; font-weight:700; margin-bottom:3px; }
+.badge-card .bdesc{ font-size:10.5px; color:var(--text-1); line-height:1.3; }
+
+.lifetime-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:6px;}
+
+/* ---------- utility ---------- */
+.row{ display:flex; align-items:center; }
+.gap8{ gap:8px;} .gap10{gap:10px;} .gap12{gap:12px;}
+.spacer{ flex:1; }
+.fade-in{ animation: fadeIn .35s ease; }
+.center{ text-align:center; }
+::selection{ background: var(--violet); color:#fff; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ============================================================
+   CIMA — Trivia gamificada
+   App de una sola página, sin dependencias externas.
+   ============================================================ */
+
+/* ---------------- Datos: preguntas ---------------- */
+const QUESTIONS = [
+  {cat:"PYMES", q:"¿En cuántos segmentos se clasifica la cartera de crédito de las entidades de los sectores financiero público y privado?", opts:["5 segmentos","6 segmentos","7 segmentos","8 segmentos"], correct:2},
+  {cat:"PYMES", q:"¿Cuál de las siguientes opciones corresponde a los segmentos en los que se divide la cartera de crédito?", opts:["Productivo, consumo, comercial, vivienda, microcrédito, educativo y inversión pública.","Productivo, consumo, inmobiliario, vivienda de interés social y público, microcrédito, educativo e inversión pública.","Productivo, consumo, hipotecario, comercial, microcrédito, educativo e inversión pública.","Productivo, comercial, vivienda, microempresa, educativo, inversión pública y empresarial."], correct:1},
+  {cat:"PYMES", q:"¿Cuál de las siguientes condiciones corresponde a un Crédito Productivo?", opts:["Personas naturales o jurídicas con ventas anuales de hasta USD 300.000.","Personas naturales o jurídicas con ventas anuales superiores a USD 300.000, destinado a actividades productivas y comerciales.","Personas naturales o jurídicas con ventas anuales superiores a USD 1.500.000.","Únicamente personas jurídicas con ventas superiores a USD 7.000.000."], correct:1},
+  {cat:"PYMES", q:"Una empresa registra ventas anuales de USD 1.200.000 y solicita un crédito destinado a una actividad productiva. ¿En qué subsegmento de crédito productivo debería clasificarse?", opts:["Productivo Corporativo","Productivo Empresarial","Productivo PYMES","Crédito de Consumo"], correct:2},
+  {cat:"PYMES", q:"¿Cuáles son los principales elementos que se deben analizar para evaluar un crédito productivo?", opts:["Capacidad de producción, nivel de ventas y garantías ofrecidas.","Capacidad de pago y situación financiera del deudor, experiencia de pago y riesgo de entorno económico.","Historial de ventas, patrimonio y referencias comerciales.","Garantías, nivel de endeudamiento y destino del crédito."], correct:1},
+  {cat:"PYMES", q:"Una empresa presenta Activo Corriente de USD 180.000 y Pasivo Corriente de USD 120.000. ¿Cuál es su Ratio de Liquidez y qué indica este resultado?", opts:["0,67; la empresa no puede cubrir sus obligaciones de corto plazo.","1,50; la empresa dispone de USD 1,50 de activos corrientes por cada USD 1,00 de pasivo corriente.","2,50; existe exceso de endeudamiento.","0,50; la empresa tiene alta rentabilidad."], correct:1},
+  {cat:"PYMES", q:"¿Cuál de las siguientes cuentas forma parte del Activo Corriente de una empresa?", opts:["Maquinaria y equipo.","Edificios.","Cuentas por cobrar e inventarios.","Préstamos bancarios de largo plazo."], correct:2},
+  {cat:"PYMES", q:"Una empresa registra Activos Totales por USD 1.000.000 y Pasivos Totales por USD 600.000. ¿Cuál es su Razón de Endeudamiento y cómo debería interpretarse?", opts:["40%; la empresa no tiene endeudamiento significativo.","60%; el 60% de los activos está financiado mediante pasivos, representando un nivel elevado de endeudamiento.","60%; significa que el 60% de los activos corresponde al patrimonio.","40%; significa que el 40% de los activos está financiado por terceros."], correct:1},
+  {cat:"PYMES", q:"¿Cuál es el principal objetivo de analizar el flujo de caja de una empresa al evaluar una solicitud de crédito?", opts:["Determinar únicamente el nivel de ventas de la empresa.","Conocer exclusivamente la utilidad contable del negocio.","Determinar si la empresa genera suficientes recursos de efectivo para cubrir sus obligaciones y el pago del crédito.","Determinar únicamente el valor de los activos fijos de la empresa."], correct:2},
+  {cat:"PYMES", q:"¿Qué indica una razón cuota elevada dentro del análisis del flujo de caja?", opts:["Que la empresa tiene mayor liquidez.","Que la empresa genera mayores utilidades.","Que una mayor proporción del flujo disponible está comprometida con el pago de la cuota, lo que puede aumentar el riesgo de incumplimiento.","Que la empresa tiene un mayor nivel de patrimonio."], correct:2},
+  {cat:"PALMER", q:"¿Cuál de las siguientes opciones representa correctamente los componentes-módulos evaluados por la metodología PALMER?", opts:["Patrimonio, Activos, Liquidez, Manejo Administrativo, Manejo Financiero y Rentabilidad.","Patrimonio, Administración, Liquidez, Mercado, Endeudamiento y Riesgo.","Activos, Pasivos, Patrimonio, Ingresos, Gastos y Rentabilidad.","Liquidez, Solvencia, Morosidad, Rentabilidad, Gobernanza y Riesgo."], correct:0},
+  {cat:"PALMER", q:"¿Cuál de los siguientes indicadores pertenece al módulo de Patrimonio de la metodología PALMER?", opts:["Índice de Liquidez General","Rentabilidad sobre el Patrimonio","Solvencia","Dependencia de Spread"], correct:2},
+  {cat:"PALMER", q:"¿Qué módulo de PALMER analiza aspectos como la morosidad, cobertura de cartera improductiva y proporción de activos improductivos?", opts:["Patrimonio","Activos","Liquidez","Rentabilidad"], correct:1},
+  {cat:"PALMER", q:"Según la metodología PALMER, ¿a qué módulo pertenece el indicador 'Eficiencia Institucional'?", opts:["Patrimonio","Liquidez","Manejo Administrativo","Rentabilidad"], correct:2},
+  {cat:"PALMER", q:"¿Cuál es la principal diferencia entre las estructuras C01 y C02?", opts:["C01 corresponde a depósitos y C02 a socios.","C01 presenta la cartera otorgada en el período, mientras C02 permite analizar la cartera acumulada.","C01 corresponde a patrimonio y C02 a liquidez.","No existe diferencia entre ambas estructuras."], correct:1},
+  {cat:"PALMER", q:"¿Qué información proporciona principalmente la estructura S01?", opts:["Información sobre la cartera de crédito.","Información sobre los depósitos.","Información relacionada con la estructura y composición de los socios.","Información sobre los activos ponderados por riesgo."], correct:2},
+  {cat:"PALMER", q:"¿Qué información proporciona principalmente la estructura D01?", opts:["La estructura de depósitos de la cooperativa.","La cartera acumulada.","La estructura de socios.","La rentabilidad institucional."], correct:0},
+  {cat:"PALMER", q:"Para analizar indicadores relacionados con la calidad, composición y comportamiento de la cartera de crédito dentro de la metodología PALMER, ¿qué estructura constituye una fuente importante de información?", opts:["S01","D01","C02","Formulario de Solvencia"], correct:2},
+  {cat:"PALMER", q:"¿Qué información o reporte debería utilizarse principalmente para analizar el nivel de solvencia de una cooperativa?", opts:["Estructura S01","Estructura C01","Formulario de Solvencia e información relacionada con los activos ponderados por riesgo.","Estructura D01 exclusivamente."], correct:2},
+  {cat:"PALMER", q:"¿Cuál es la finalidad principal del informe de Activos Ponderados por Riesgo dentro del análisis financiero de una cooperativa?", opts:["Determinar la cantidad de socios activos.","Determinar la cartera otorgada durante el mes.","Proporcionar información para evaluar la exposición al riesgo de los activos y su relación con la solvencia.","Determinar el monto de depósitos a plazo."], correct:2},
+  {cat:"Prueba 1", q:"¿Cuál es el hueso más largo del cuerpo humano?", opts:["Húmero","Fémur","Tibia","Radio"], correct:1},
+  {cat:"Prueba 1", q:"¿Qué planeta es conocido como el 'planeta rojo'?", opts:["Júpiter","Venus","Marte","Saturno"], correct:2},
+  {cat:"Prueba 1", q:"¿Cuál es el elemento químico más abundante en el universo?", opts:["Oxígeno","Hidrógeno","Carbono","Helio"], correct:1},
+  {cat:"Prueba 1", q:"¿Qué órgano produce la insulina?", opts:["Hígado","Riñón","Páncreas","Bazo"], correct:2},
+  {cat:"Prueba 1", q:"¿A qué velocidad viaja la luz aproximadamente?", opts:["300.000 km/s","150.000 km/s","1.000.000 km/s","30.000 km/s"], correct:0},
+  {cat:"Prueba 2", q:"¿Quién pintó 'La noche estrellada'?", opts:["Monet","Van Gogh","Dalí","Picasso"], correct:1},
+  {cat:"Prueba 2", q:"¿De qué país es originario el tango?", opts:["España","México","Argentina","Brasil"], correct:2},
+  {cat:"Prueba 2", q:"¿Quién compuso 'Las cuatro estaciones'?", opts:["Mozart","Bach","Vivaldi","Beethoven"], correct:2},
+  {cat:"Prueba 2", q:"¿Qué movimiento artístico fundó Salvador Dalí junto a otros?", opts:["Cubismo","Surrealismo","Impresionismo","Futurismo"], correct:1},
+  {cat:"Prueba 3", q:"¿Cada cuántos años se celebran los Juegos Olímpicos de verano?", opts:["2","3","4","5"], correct:2},
+  {cat:"Prueba 3", q:"¿En qué deporte se usa el término 'jaque mate'?", opts:["Damas","Ajedrez","Go","Backgammon"], correct:1},
+  {cat:"Prueba 3", q:"¿Cuántos jugadores tiene un equipo de fútbol en cancha?", opts:["9","10","11","12"], correct:2},
+  {cat:"Prueba 3", q:"¿En qué país nació el baloncesto?", opts:["Estados Unidos","Canadá","Reino Unido","Francia"], correct:0},
+  {cat:"Prueba 4", q:"¿Qué instrumento toca tradicionalmente un mariachi como melodía principal?", opts:["Trompeta","Violín","Guitarrón","Vihuela"], correct:1},
+  {cat:"Prueba 4", q:"¿Cuál es el museo de animación más conocido fundado por Hayao Miyazaki?", opts:["Studio Ghibli","Pixar","Toei Animation","Aardman"], correct:0},
+  {cat:"Prueba 4", q:"¿Qué premio reconoce lo mejor del cine cada año en EE.UU.?", opts:["Grammy","Óscar","Emmy","Tony"], correct:1},
+  {cat:"Prueba 4", q:"¿Cuál es el instrumento principal de un cuarteto de cuerdas?", opts:["Violín","Piano","Flauta","Trompeta"], correct:0},
+  {cat:"Naturaleza", q:"¿Cuál es el animal terrestre más grande del mundo?", opts:["Jirafa","Elefante africano","Rinoceronte","Hipopótamo"], correct:1},
+  {cat:"Naturaleza", q:"¿Qué porcentaje aproximado de la superficie terrestre cubre el agua?", opts:["50%","60%","71%","85%"], correct:2},
+  {cat:"Naturaleza", q:"¿Cuál es el ave más rápida en vuelo en picado?", opts:["Águila real","Halcón peregrino","Cóndor","Colibrí"], correct:1},
+  {cat:"Naturaleza", q:"¿Qué selva es considerada el 'pulmón del planeta'?", opts:["Selva del Congo","Amazonía","Selva Negra","Daintree"], correct:1},
+  {cat:"Tecnología", q:"¿Qué significa la sigla 'CPU'?", opts:["Central Process Unit","Central Processing Unit","Computer Personal Unit","Core Processing Unit"], correct:1},
+  {cat:"Tecnología", q:"¿Quién es considerado cofundador de Apple junto a Steve Jobs?", opts:["Bill Gates","Steve Wozniak","Elon Musk","Larry Page"], correct:1},
+  {cat:"Tecnología", q:"¿Qué lenguaje se usa principalmente para dar estilo a páginas web?", opts:["HTML","CSS","SQL","JSON"], correct:1},
+  {cat:"Tecnología", q:"¿Qué significa 'IA' en tecnología?", opts:["Internet Avanzado","Inteligencia Artificial","Interfaz Automática","Información Aplicada"], correct:1},
+];
+
+const CATEGORIES = ["Todas", ...Array.from(new Set(QUESTIONS.map(q=>q.cat)))];
+
+const XP_LADDER = [60,80,100,130,170,220,280,350,450,600];
+const ROUND_SIZE = 10;
+const TIME_PER_Q = 25;
+
+const BADGES = [
+  {id:"primer_reto", name:"Primer Paso", icon:"🥾", desc:"Completa tu primer reto.", check:(u)=> u.gamesPlayed>=1},
+  {id:"cima_perfecta", name:"Cima Perfecta", icon:"🏔️", desc:"Acierta las 10 preguntas de una ronda.", check:(u)=> u.perfectRounds>=1},
+  {id:"racha3", name:"Constancia", icon:"🔥", desc:"Juega 3 días seguidos.", check:(u)=> u.streak>=3},
+  {id:"racha7", name:"Inquebrantable", icon:"⚡", desc:"Juega 7 días seguidos.", check:(u)=> u.streak>=7},
+  {id:"erudito", name:"Erudito", icon:"📚", desc:"Acumula 100 respuestas correctas.", check:(u)=> u.totalCorrect>=100},
+  {id:"explorador", name:"Explorador", icon:"🧭", desc:"Juega en 5 categorías distintas.", check:(u)=> (u.categoriesPlayed||[]).length>=5},
+  {id:"nivel5", name:"Mente en Ascenso", icon:"⛰️", desc:"Alcanza el nivel 5.", check:(u)=> computeLevel(u.xp).level>=5},
+  {id:"nivel10", name:"Leyenda de la Cima", icon:"👑", desc:"Alcanza el nivel 10.", check:(u)=> computeLevel(u.xp).level>=10},
+  {id:"veterano", name:"Veterano", icon:"🎖️", desc:"Completa 20 retos.", check:(u)=> u.gamesPlayed>=20},
+  {id:"rayo", name:"Reflejos de Rayo", icon:"💨", desc:"Responde con más de 20s restantes.", check:(u)=> u.fastestAnswer},
+];
+
+/* ---------------- Persistencia ---------------- */
+const STORAGE_KEY = "cima_trivia_v1";
+function defaultUser(){
+  return { name:"", xp:0, gamesPlayed:0, perfectRounds:0, totalCorrect:0, totalAnswered:0,
+    streak:0, lastPlayDate:null, playDates:[], unlockedBadges:[], categoriesPlayed:[],
+    fastestAnswer:false, theme:"dark" };
+}
+function loadUser(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return Object.assign(defaultUser(), JSON.parse(raw));
+  }catch(e){}
+  return defaultUser();
+}
+function saveUser(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state.user)); }catch(e){} }
+
+/* ---------------- Nivel / XP ---------------- */
+function xpForLevel(n){ return 220*n*n; } // xp acumulada requerida para alcanzar el nivel n+1
+function computeLevel(xp){
+  let level = 1;
+  while(xp >= xpForLevel(level)) level++;
+  const prevThresh = level===1 ? 0 : xpForLevel(level-1);
+  const nextThresh = xpForLevel(level);
+  const into = xp - prevThresh;
+  const span = nextThresh - prevThresh;
+  return { level, name: levelName(level), into, span, nextThresh, prevThresh, pct: Math.min(100, Math.round((into/span)*100)) };
+}
+function levelName(level){
+  if(level<=2) return "Explorador";
+  if(level<=4) return "Aprendiz";
+  if(level<=7) return "Estratega";
+  if(level<=10) return "Sabio";
+  if(level<=14) return "Mente Brillante";
+  return "Leyenda de la Cima";
+}
+
+/* ---------------- Estado global ---------------- */
+const state = {
+  screen: "home", // home | play | results
+  theme: null,
+  user: loadUser(),
+  categoryFilter: "Todas",
+  session: null,
+  showProgress: false,
+  timerInterval: null,
+};
+state.theme = state.user.theme || "dark";
+
+const app = document.getElementById("app");
+
+/* ---------------- Utilidades ---------------- */
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function fmtPct(n){ return Math.round(n)+"%"; }
+
+function applyTheme(){
+  document.documentElement.setAttribute("data-theme", state.theme);
+}
+function toggleTheme(){
+  state.theme = state.theme === "dark" ? "light" : "dark";
+  state.user.theme = state.theme;
+  saveUser();
+  applyTheme();
+  render();
+}
+
+/* ---------------- Streak ---------------- */
+function registerPlayToday(){
+  const today = todayISO();
+  const u = state.user;
+  if(u.lastPlayDate === today) return; // ya contabilizado hoy
+  const y = new Date(); y.setDate(y.getDate()-1);
+  const yesterday = y.toISOString().slice(0,10);
+  if(u.lastPlayDate === yesterday){ u.streak += 1; }
+  else { u.streak = 1; }
+  u.lastPlayDate = today;
+  u.playDates = (u.playDates||[]).concat(today).slice(-30);
+}
+
+/* ---------------- Iconos SVG ---------------- */
+const ICONS = {
+  mountain:`<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 19L9.5 7L13.5 14L16 10.5L21 19H3Z" fill="#fff"/></svg>`,
+  sun:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2 12h2.4M19.6 12H22M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7" stroke-linecap="round"/></svg>`,
+  moon:`<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>`,
+  back:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>`,
+  trophy:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 4h10v4a5 5 0 01-10 0V4z"/><path d="M7 5H4a3 3 0 003 5M17 5h3a3 3 0 01-3 5"/><path d="M10 17h4M12 13v4M9 21h6"/></svg>`,
+  bolt:`<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>`,
+};
+
+/* ============================================================
+   RENDER: HOME
+   ============================================================ */
+function renderHome(){
+  const u = state.user;
+  const lv = computeLevel(u.xp);
+  const accuracy = u.totalAnswered ? Math.round((u.totalCorrect/u.totalAnswered)*100) : 0;
+
+  return `
+  <div class="fade-in">
+    ${topbarHTML()}
+
+    <div class="user-card glass">
+      <div class="user-row">
+        <div class="avatar">${(u.name||"?").trim().charAt(0).toUpperCase() || "?"}</div>
+        <div class="user-meta">
+          <div class="user-greeting">Hola, listo para subir hoy</div>
+          <input class="name-input" id="nameInput" value="${escapeHtml(u.name)}" placeholder="Escribe tu nombre" maxlength="18" onchange="onNameChange(this.value)">
+          <div class="level-pill"><span class="dot"></span>Nivel ${lv.level} · ${lv.name}</div>
+        </div>
+      </div>
+
+      <div class="xp-block">
+        <div class="xp-row">
+          <span class="lbl">Progreso al nivel ${lv.level+1}</span>
+          <span class="val">${lv.into} / ${lv.span} XP</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:${lv.pct}%"></div></div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-chip">
+          <div class="num flame">🔥 ${u.streak}</div>
+          <div class="lbl">Racha</div>
+        </div>
+        <div class="stat-chip">
+          <div class="num">${u.xp}</div>
+          <div class="lbl">XP total</div>
+        </div>
+        <div class="stat-chip">
+          <div class="num">${accuracy}%</div>
+          <div class="lbl">Precisión</div>
+        </div>
+      </div>
+
+      <button class="cta-main" onclick="goCategoryPick()">
+        <div class="shine"></div>
+        ${ICONS.mountain}
+        Comenzar reto
+      </button>
+    </div>
+
+    <div class="section-label">📚 Elige una categoría</div>
+    <div class="chip-row">
+      ${CATEGORIES.map(c=>`<button class="chip ${state.categoryFilter===c?'active':''}" onclick="selectCategory('${c}')">${c}</button>`).join("")}
+    </div>
+
+    <div class="quick-row">
+      <button class="quick-card glass glass-tight" onclick="openProgress()">
+        <div class="qicon">${ICONS.trophy}</div>
+        <div class="qtitle">Logros</div>
+        <div class="qsub">${u.unlockedBadges.length}/${BADGES.length} desbloqueados</div>
+      </button>
+      <button class="quick-card glass glass-tight" onclick="openProgress()">
+        <div class="qicon">📊</div>
+        <div class="qtitle">Estadísticas</div>
+        <div class="qsub">${u.gamesPlayed} retos jugados</div>
+      </button>
+    </div>
+
+    <div class="footer-note">10 preguntas · ${TIME_PER_Q}s por pregunta · sube de nivel con cada acierto</div>
+  </div>`;
+}
+
+function topbarHTML(){
+  return `
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">${ICONS.mountain}</div>
+      <div class="brand-name">JUEGO PREG. PYMES-PALMER<span>·</span>Trivia</div>
+    </div>
+    <button class="icon-btn" onclick="toggleTheme()" title="Cambiar tema">${state.theme==='dark'?ICONS.sun:ICONS.moon}</button>
+  </div>`;
+}
+
+function selectCategory(c){ state.categoryFilter = c; render(); }
+function onNameChange(v){ state.user.name = v.trim().slice(0,18); saveUser(); render(); }
+function goCategoryPick(){ startSession(); }
+
+/* ============================================================
+   SESIÓN DE JUEGO
+   ============================================================ */
+function startSession(){
+  let pool = state.categoryFilter==="Todas" ? QUESTIONS : QUESTIONS.filter(q=>q.cat===state.categoryFilter);
+  if(pool.length < ROUND_SIZE) pool = QUESTIONS; // fallback de seguridad
+  const picked = shuffle(pool).slice(0, ROUND_SIZE).map(q=>{
+    const order = shuffle(q.opts.map((text,i)=>({text, correct:i===q.correct})));
+    return { cat:q.cat, question:q.q, options: order };
+  });
+  state.session = {
+    questions: picked,
+    index: 0,
+    correctCount: 0,
+    xpEarned: 0,
+    timeLeft: TIME_PER_Q,
+    answered: false,
+    selectedIdx: null,
+    lifelines: { fifty:false, audience:false, change:false },
+    hidden: [],
+    audiencePcts: null,
+    categoriesSeen: new Set(),
+    fastestFlag: false,
+    ended: false,
+    wrongAt: null,
+  };
+  state.screen = "play";
+  render();
+  startTimer();
+}
+
+function currentQ(){ return state.session.questions[state.session.index]; }
+
+function startTimer(){
+  clearInterval(state.timerInterval);
+  const s = state.session;
+  updateTimerDOM();
+  state.timerInterval = setInterval(()=>{
+    if(s.answered){ return; }
+    s.timeLeft -= 1;
+    if(s.timeLeft <= 0){
+      s.timeLeft = 0;
+      updateTimerDOM();
+      clearInterval(state.timerInterval);
+      handleAnswer(-1); // tiempo agotado = fallo
+      return;
+    }
+    updateTimerDOM();
+  }, 1000);
+}
+
+function updateTimerDOM(){
+  const s = state.session;
+  const ring = document.getElementById("timerRingFg");
+  const numEl = document.getElementById("timerNum");
+  if(!ring || !numEl) return;
+  const circumference = 2*Math.PI*32;
+  const pct = s.timeLeft / TIME_PER_Q;
+  ring.style.strokeDashoffset = (circumference*(1-pct)).toFixed(1);
+  numEl.textContent = s.timeLeft;
+  ring.style.stroke = s.timeLeft<=5 ? "var(--coral)" : (s.timeLeft<=12 ? "var(--gold)" : "var(--teal)");
+}
+
+/* ---------------- Comodines ---------------- */
+function useFifty(){
+  const s = state.session;
+  if(s.lifelines.fifty || s.answered) return;
+  s.lifelines.fifty = true;
+  const q = currentQ();
+  const wrongIdx = q.options.map((o,i)=>i).filter(i=>!q.options[i].correct);
+  s.hidden = shuffle(wrongIdx).slice(0,2);
+  render();
+}
+function useAudience(){
+  const s = state.session;
+  if(s.lifelines.audience || s.answered) return;
+  s.lifelines.audience = true;
+  const q = currentQ();
+  const correctIdx = q.options.findIndex(o=>o.correct);
+  const pcts = [0,0,0,0].slice(0,q.options.length);
+  pcts[correctIdx] = 45 + Math.floor(Math.random()*30);
+  let rest = 100 - pcts[correctIdx];
+  q.options.forEach((o,i)=>{
+    if(i!==correctIdx){
+      const take = i===q.options.length-1 ? rest : Math.floor(Math.random()*(rest/1.5));
+      pcts[i] = Math.max(2, Math.min(take, rest));
+      rest -= pcts[i];
+    }
+  });
+  s.audiencePcts = pcts;
+  render();
+}
+function useChange(){
+  const s = state.session;
+  if(s.lifelines.change || s.answered) return;
+  const used = new Set(s.questions.map(q=>q.question));
+  let pool = (state.categoryFilter==="Todas" ? QUESTIONS : QUESTIONS.filter(q=>q.cat===state.categoryFilter))
+    .filter(q=>!used.has(q.q));
+  if(pool.length===0) pool = QUESTIONS.filter(q=>!used.has(q.q));
+  if(pool.length===0) return;
+  s.lifelines.change = true;
+  const q = shuffle(pool)[0];
+  const order = shuffle(q.opts.map((text,i)=>({text, correct:i===q.correct})));
+  s.questions[s.index] = { cat:q.cat, question:q.q, options: order };
+  s.hidden = [];
+  s.audiencePcts = null;
+  s.timeLeft = TIME_PER_Q;
+  render();
+  startTimer();
+}
+
+/* ---------------- Responder ---------------- */
+function handleAnswer(idx){
+  const s = state.session;
+  if(s.answered) return;
+  s.answered = true;
+  s.selectedIdx = idx;
+  clearInterval(state.timerInterval);
+
+  const q = currentQ();
+  s.categoriesSeen.add(q.cat);
+  const isCorrect = idx>=0 && q.options[idx].correct;
+  state.user.totalAnswered += 1;
+
+  if(s.timeLeft > 20) s.fastestFlag = true;
+
+  if(isCorrect){
+    const gained = XP_LADDER[s.index] || 600;
+    s.xpEarned += gained;
+    s.correctCount += 1;
+    state.user.totalCorrect += 1;
+  } else {
+    s.wrongAt = s.index;
+  }
+  render();
+
+  const delay = isCorrect ? 1300 : 2200;
+  setTimeout(()=>{
+    if(isCorrect && s.index < s.questions.length-1){
+      s.index += 1;
+      s.answered = false;
+      s.selectedIdx = null;
+      s.hidden = [];
+      s.audiencePcts = null;
+      s.timeLeft = TIME_PER_Q;
+      render();
+      startTimer();
+    } else {
+      finishSession(isCorrect);
+    }
+  }, delay);
+}
+
+function finishSession(lastCorrect){
+  const s = state.session;
+  s.ended = true;
+  const u = state.user;
+  u.xp += s.xpEarned;
+  u.gamesPlayed += 1;
+  if(s.correctCount === s.questions.length) u.perfectRounds += 1;
+  if(s.fastestFlag) u.fastestAnswer = true;
+  u.categoriesPlayed = Array.from(new Set([...(u.categoriesPlayed||[]), ...Array.from(s.categoriesSeen)]));
+  registerPlayToday();
+
+  const before = new Set(u.unlockedBadges);
+  const newly = [];
+  BADGES.forEach(b=>{
+    if(!before.has(b.id) && b.check(u)){ u.unlockedBadges.push(b.id); newly.push(b); }
+  });
+  s.newBadges = newly;
+
+  saveUser();
+  state.screen = "results";
+  render();
+}
+
+function exitSession(){
+  if(state.session && !state.session.ended){
+    if(!confirm("¿Salir del reto? Perderás el progreso de esta ronda.")) return;
+  }
+  clearInterval(state.timerInterval);
+  state.session = null;
+  state.screen = "home";
+  render();
+}
+
+/* ============================================================
+   RENDER: PLAY
+   ============================================================ */
+function renderPlay(){
+  const s = state.session;
+  const q = currentQ();
+  const letters = ["A","B","C","D"];
+  const circumference = 2*Math.PI*32;
+
+  const answersHtml = q.options.map((o,i)=>{
+    let cls = "answer-btn";
+    if(s.hidden.includes(i)) cls += " faded locked";
+    if(s.answered){
+      cls += " locked";
+      if(o.correct) cls += " correct";
+      else if(i===s.selectedIdx) cls += " wrong";
+    }
+    const mark = s.answered ? (o.correct ? "✓" : (i===s.selectedIdx ? "✕" : "")) : "";
+    return `<button class="${cls}" ${s.hidden.includes(i)?'disabled':''} onclick="handleAnswer(${i})">
+      <span class="letter">${letters[i]}</span>
+      <span>${escapeHtml(o.text)}</span>
+      ${mark?`<span class="mark">${mark}</span>`:""}
+    </button>`;
+  }).join("");
+
+  const audienceHtml = s.audiencePcts ? `
+    <div class="audience-box glass glass-tight fade-in">
+      ${q.options.map((o,i)=>`
+        <div class="audience-row">
+          <span class="al">${letters[i]}</span>
+          <div class="audience-bar-track"><div class="audience-bar-fill" style="width:${s.audiencePcts[i]}%"></div></div>
+          <span class="audience-pct">${s.audiencePcts[i]}%</span>
+        </div>`).join("")}
+    </div>` : "";
+
+  let feedbackHtml = "";
+  if(s.answered){
+    const correctOpt = q.options.find(o=>o.correct);
+    const wasCorrect = s.selectedIdx>=0 && q.options[s.selectedIdx].correct;
+    if(wasCorrect){
+      feedbackHtml = `<div class="feedback-banner ok">✅ &nbsp;¡Correcto! Vas muy bien.<span class="xp-gain">+${XP_LADDER[s.index]} XP</span></div>`;
+    } else {
+      feedbackHtml = `<div class="feedback-banner bad">❌ &nbsp;${s.selectedIdx===-1?'Se acabó el tiempo.':'No era esa.'} La respuesta era: <b>${escapeHtml(correctOpt.text)}</b></div>`;
+    }
+  }
+
+  const pathHtml = s.questions.map((_,i)=>{
+    let cls="path-node";
+    if(i<s.index || (i===s.index && s.answered && s.selectedIdx>=0 && currentQ().options[s.selectedIdx]?.correct)) cls+=" done";
+    if(i===s.index && !(s.answered)) cls+=" current";
+    return `<div class="${cls}">${i+1}</div>`;
+  }).join("");
+
+  return `
+  <div class="fade-in">
+    <div class="play-top">
+      <button class="icon-btn" onclick="exitSession()">${ICONS.back}</button>
+      <span class="cat-chip">${escapeHtml(q.cat)}</span>
+      <span class="q-progress-text">Pregunta ${s.index+1}/${s.questions.length} · ${s.xpEarned} XP</span>
+    </div>
+
+    <div class="path-strip">${pathHtml}</div>
+
+    <div class="timer-wrap">
+      <div class="timer-ring-box">
+        <svg viewBox="0 0 74 74">
+          <circle class="timer-ring-bg" cx="37" cy="37" r="32"></circle>
+          <circle id="timerRingFg" class="timer-ring-fg" cx="37" cy="37" r="32"
+            stroke-dasharray="${circumference}" stroke-dashoffset="0"></circle>
+        </svg>
+        <div class="timer-num" id="timerNum">${s.timeLeft}</div>
+      </div>
+    </div>
+
+    <div class="q-card glass">
+      <div class="q-text">${escapeHtml(q.question)}</div>
+      <div class="answers-grid">${answersHtml}</div>
+    </div>
+
+    ${audienceHtml}
+    ${feedbackHtml}
+
+    <div class="lifelines">
+      <button class="life-btn" ${s.lifelines.fifty||s.answered?'disabled':''} onclick="useFifty()"><span class="lemo">🎯</span>50/50</button>
+      <button class="life-btn" ${s.lifelines.audience||s.answered?'disabled':''} onclick="useAudience()"><span class="lemo">👥</span>Público</button>
+      <button class="life-btn" ${s.lifelines.change||s.answered?'disabled':''} onclick="useChange()"><span class="lemo">🔁</span>Cambiar</button>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   RENDER: RESULTS
+   ============================================================ */
+function renderResults(){
+  const s = state.session;
+  const u = state.user;
+  const total = s.questions.length;
+  const pct = Math.round((s.correctCount/total)*100);
+  const circumference = 2*Math.PI*70;
+  const offset = circumference*(1-pct/100);
+  const ringColor = pct===100 ? "var(--gold)" : (pct>=50 ? "var(--teal)" : "var(--coral)");
+
+  let title, sub;
+  if(pct===100){ title="¡Cima alcanzada! 🏔️"; sub="Respondiste todo correctamente. Eres imparable."; }
+  else if(pct>=70){ title="¡Gran ascenso!"; sub="Estuviste muy cerca de la cima. Sigue así."; }
+  else if(pct>=40){ title="Buen intento"; sub="Vas tomando ritmo, cada reto te hace más fuerte."; }
+  else { title="Sigue subiendo"; sub="Todos empiezan en la base. La práctica te llevará más arriba."; }
+
+  // recomendación simple según categoría jugada
+  const reco = pct>=70
+    ? `Dominas bien <b>${escapeHtml(state.categoryFilter==='Todas'?'esta mezcla de temas':state.categoryFilter)}</b>. Prueba otra categoría para seguir creciendo.`
+    : `Repasa un poco más de <b>${escapeHtml(state.categoryFilter==='Todas'?'estos temas':state.categoryFilter)}</b> y vuelve a intentarlo: cada intento suma XP.`;
+
+  const badgesHtml = (s.newBadges && s.newBadges.length) ? `
+    <div class="section-label">🎁 Logros desbloqueados</div>
+    <div class="badge-unlock-row">
+      ${s.newBadges.map((b,i)=>`
+        <div class="badge-card-mini glass glass-tight" style="animation-delay:${i*0.12}s">
+          <div class="bicon">${b.icon}</div>
+          <div class="bname">${b.name}</div>
+        </div>`).join("")}
+    </div>` : "";
+
+  return `
+  <div class="fade-in">
+    ${topbarHTML()}
+
+    <div class="results-hero glass">
+      <div class="score-ring-box">
+        <svg viewBox="0 0 160 160">
+          <circle class="score-ring-bg" cx="80" cy="80" r="70"></circle>
+          <circle class="score-ring-fg" id="scoreRing" cx="80" cy="80" r="70"
+            stroke="${ringColor}" stroke-dasharray="${circumference}" stroke-dashoffset="${circumference}"></circle>
+        </svg>
+        <div class="score-ring-label">
+          <div class="pct" id="pctNum">0%</div>
+          <div class="frac">${s.correctCount}/${total} correctas</div>
+        </div>
+      </div>
+      <div class="results-title">${title}</div>
+      <div class="results-sub">${sub}</div>
+    </div>
+
+    <div class="results-stats">
+      <div class="rs-card glass glass-tight"><div class="num">+${s.xpEarned}</div><div class="lbl">XP ganada</div></div>
+      <div class="rs-card glass glass-tight"><div class="num">🔥 ${u.streak}</div><div class="lbl">Racha</div></div>
+      <div class="rs-card glass glass-tight"><div class="num">Nv.${computeLevel(u.xp).level}</div><div class="lbl">Nivel actual</div></div>
+    </div>
+
+    ${badgesHtml}
+
+    <div class="section-label">💡 Recomendación</div>
+    <div class="reco-box glass glass-tight"><span class="ricon">🧠</span><p>${reco}</p></div>
+
+    <div class="results-actions">
+      <button class="cta-main" onclick="startSession()"><div class="shine"></div>${ICONS.mountain} Jugar de nuevo</button>
+      <button class="btn-secondary" onclick="openProgress()">Ver mi progreso</button>
+      <button class="btn-secondary" onclick="goHomeFromResults()">Volver al inicio</button>
+    </div>
+  </div>`;
+}
+
+function goHomeFromResults(){ state.session=null; state.screen="home"; render(); }
+
+function animateResultsIn(){
+  const s = state.session;
+  const total = s.questions.length;
+  const pct = Math.round((s.correctCount/total)*100);
+  const circumference = 2*Math.PI*70;
+  const ring = document.getElementById("scoreRing");
+  const numEl = document.getElementById("pctNum");
+  if(!ring || !numEl) return;
+  requestAnimationFrame(()=>{
+    ring.style.strokeDashoffset = (circumference*(1-pct/100)).toFixed(1);
+  });
+  let cur = 0;
+  const step = Math.max(1, Math.round(pct/30));
+  const iv = setInterval(()=>{
+    cur = Math.min(pct, cur+step);
+    numEl.textContent = cur+"%";
+    if(cur>=pct) clearInterval(iv);
+  }, 25);
+}
+
+/* ============================================================
+   RENDER: PROGRESS OVERLAY
+   ============================================================ */
+function openProgress(){ state.showProgress = true; render(); }
+function closeProgress(){ state.showProgress = false; render(); }
+
+function renderProgressOverlay(){
+  const u = state.user;
+  const lv = computeLevel(u.xp);
+  const accuracy = u.totalAnswered ? Math.round((u.totalCorrect/u.totalAnswered)*100) : 0;
+
+  const days = [];
+  for(let i=6;i>=0;i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const iso = d.toISOString().slice(0,10);
+    const lbl = d.toLocaleDateString('es-ES', {weekday:'short'}).slice(0,1).toUpperCase();
+    days.push({iso, lbl, filled: (u.playDates||[]).includes(iso)});
+  }
+
+  const badgesHtml = BADGES.map(b=>{
+    const unlocked = u.unlockedBadges.includes(b.id);
+    return `<div class="badge-card glass glass-tight ${unlocked?'':'locked'}">
+      <div class="bicon">${unlocked?b.icon:'🔒'}</div>
+      <div class="bname">${b.name}</div>
+      <div class="bdesc">${b.desc}</div>
+    </div>`;
+  }).join("");
+
+  return `
+  <div class="overlay" onclick="if(event.target===this) closeProgress()">
+    <div class="sheet glass">
+      <div class="sheet-head">
+        <div class="sheet-title">Tu progreso</div>
+        <button class="icon-btn" onclick="closeProgress()">✕</button>
+      </div>
+
+      <div class="level-pill" style="margin-bottom:10px;"><span class="dot"></span>Nivel ${lv.level} · ${lv.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${lv.pct}%"></div></div>
+      <div class="xp-row" style="margin-top:7px;"><span class="lbl">Hacia nivel ${lv.level+1}</span><span class="val">${lv.into}/${lv.span} XP</span></div>
+
+      <div class="section-label">📅 Esta semana</div>
+      <div class="week-strip">
+        ${days.map(d=>`<div class="week-day"><div class="wd-lbl">${d.lbl}</div><div class="wd-dot ${d.filled?'filled':''}">${d.filled?'🔥':''}</div></div>`).join("")}
+      </div>
+
+      <div class="section-label">📈 Estadísticas</div>
+      <div class="lifetime-grid">
+        <div class="rs-card glass glass-tight"><div class="num">${u.gamesPlayed}</div><div class="lbl">Retos jugados</div></div>
+        <div class="rs-card glass glass-tight"><div class="num">${accuracy}%</div><div class="lbl">Precisión global</div></div>
+        <div class="rs-card glass glass-tight"><div class="num">${u.totalCorrect}</div><div class="lbl">Correctas totales</div></div>
+        <div class="rs-card glass glass-tight"><div class="num">${u.perfectRounds}</div><div class="lbl">Cimas perfectas</div></div>
+      </div>
+
+      <div class="section-label">🏅 Logros (${u.unlockedBadges.length}/${BADGES.length})</div>
+      <div class="badges-grid">${badgesHtml}</div>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   RENDER MASTER
+   ============================================================ */
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
+
+function render(){
+  applyTheme();
+  let html = "";
+  if(state.screen==="home") html = renderHome();
+  else if(state.screen==="play") html = renderPlay();
+  else if(state.screen==="results") html = renderResults();
+
+  if(state.showProgress) html += renderProgressOverlay();
+
+  app.innerHTML = html;
+
+  if(state.screen==="play" && state.session && !state.session.ended) updateTimerDOM();
+  if(state.screen==="results") setTimeout(animateResultsIn, 60);
+}
+
+render();
+</script>
+</body>
+</html>
