@@ -25,7 +25,7 @@ export function BrandMark() {
       <div className="brand-mark" aria-hidden="true">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 19L10 6l4 7 3-4 4 10H3z" fill="#fff" /></svg>
       </div>
-      <div className="brand-name">PYMES <span>·</span> PALMER</div>
+      <div className="brand-name">JUEGA CON <span>·</span> CODY</div>
     </div>
   );
 }

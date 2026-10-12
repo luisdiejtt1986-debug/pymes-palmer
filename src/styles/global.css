@@ -544,8 +544,8 @@ code, .code{ font-family:var(--font-mono); font-size:12.5px; background:var(--su
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  margin-top: -15px;
-  margin-bottom: -45px; /* Ajustado para que el solape sea exacto y cercano */
+  margin-top: -28px;
+  margin-bottom: -47px; /* Ajustado para que el solape sea exacto y cercano */
   z-index: 3;
   pointer-events: none;
 }

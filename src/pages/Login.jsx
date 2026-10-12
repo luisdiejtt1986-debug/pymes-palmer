@@ -54,13 +54,13 @@ export default function Login() {
         {/* Encabezado con título corporativo en tono verde */}
         <div className="popout-header">
           <h1 className="welcome-title-green">Bienvenido de vuelta</h1>
-          <p className="muted">Inicia sesión para continuar tu ascenso</p>
+          <p className="muted">Inicia sesión para continuar</p>
         </div>
 
         {/* Personaje 3D optimizado y más cercano */}
         <div className="character-popout-box">
           <img 
-            src="/personaje-popout.png" 
+            src="/personaje.webp" 
             alt="Personaje Codesarrollo" 
             className="character-popout-img"
           />
@@ -75,7 +75,7 @@ export default function Login() {
                 className="input popout-input" 
                 type="email" 
                 autoComplete="email" 
-                placeholder="tu@correo.com"
+                placeholder="tu@bancodesarrollo.fin.ec"
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
               />
