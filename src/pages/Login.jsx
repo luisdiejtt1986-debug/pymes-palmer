@@ -60,7 +60,7 @@ export default function Login() {
         {/* Personaje 3D optimizado y más cercano */}
         <div className="character-popout-box">
           <img 
-            src="/personaje.webp" 
+            src="/personajecody.webp" 
             alt="Personaje Codesarrollo" 
             className="character-popout-img"
           />
@@ -87,7 +87,7 @@ export default function Login() {
                 className="input popout-input" 
                 type="password" 
                 autoComplete="current-password" 
-                placeholder="••••••••••••"
+                placeholder="•••••••••••••"
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
               />
