@@ -7,8 +7,12 @@ import { db } from '../firebase/config.js';
 const nowTs = () => serverTimestamp();
 
 export function newUserDoc(uid, { name, email }) {
+  const cleanName = name.trim();
   return {
-    id: uid, name, email,
+    id: uid, 
+    name: cleanName, 
+    nameLower: cleanName.toLowerCase(), // <-- ¡Campo clave para validar nombres únicos sin importar mayúsculas!
+    email,
     avatar: '', theme: 'dark',
     role: 'player', status: 'active',
     xp: 0, level: 1, levelName: 'Explorador',
@@ -26,7 +30,10 @@ export function newUserDoc(uid, { name, email }) {
 export function publicFromUser(u) {
   const avgTime = u.totalAnswered ? Math.round((u.totalTime / u.totalAnswered) * 10) / 10 : 0;
   return {
-    uid: u.id, name: u.name, avatar: u.avatar || '',
+    uid: u.id, 
+    name: u.name, 
+    nameLower: u.nameLower || u.name.trim().toLowerCase(), 
+    avatar: u.avatar || '',
     level: u.level, levelName: u.levelName, xp: u.xp,
     accuracy: u.accuracy, rankAccuracy: u.totalAnswered >= 20 ? u.accuracy : 0,
     gamesPlayed: u.gamesPlayed, totalAnswered: u.totalAnswered, totalCorrect: u.totalCorrect,
@@ -61,13 +68,19 @@ export function subscribeProfile(uid, onData, onError) {
 /** El jugador solo puede cambiar nombre, avatar y tema (reforzado en Security Rules). */
 export async function updateOwnProfile(uid, { name, avatar, theme }) {
   const patch = { updatedAt: nowTs() };
-  if (name !== undefined) patch.name = name.trim();
+  if (name !== undefined) {
+    patch.name = name.trim();
+    patch.nameLower = name.trim().toLowerCase(); // Actualizamos también la versión en minúsculas
+  }
   if (avatar !== undefined) patch.avatar = avatar;
   if (theme !== undefined) patch.theme = theme;
   const batch = writeBatch(db);
   batch.update(doc(db, 'users', uid), patch);
   const pub = { updatedAt: nowTs() };
-  if (name !== undefined) pub.name = name.trim();
+  if (name !== undefined) {
+    pub.name = name.trim();
+    pub.nameLower = name.trim().toLowerCase();
+  }
   if (avatar !== undefined) pub.avatar = avatar;
   if (Object.keys(pub).length > 1) batch.update(doc(db, 'publicProfiles', uid), pub);
   await batch.commit();
