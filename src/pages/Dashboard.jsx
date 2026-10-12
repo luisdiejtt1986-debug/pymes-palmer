@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useParams2 } from '../context/ParamsContext.jsx';
@@ -8,11 +9,15 @@ import { getActiveSession, listGames } from '../services/gameService.js';
 import { recommendNext, topicMasteryFor } from '../services/analyticsService.js';
 import { getCatalog } from '../services/catalog.js';
 import { fmtDate } from '../utils/game.js';
+import TrainingFeedbackModal from '../components/TrainingFeedbackModal.jsx'; // Importamos el modal de estrellitas
 
 export default function Dashboard() {
   const { profile } = useAuth();
   const { paramsExist } = useParams2();
   const nav = useNavigate();
+
+  // Estado para controlar la visibilidad del modal de calificación
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   const { data, loading, error, reload } = useAsync(async () => {
     const [active, games, mastery, catalog] = await Promise.all([
@@ -76,6 +81,18 @@ export default function Dashboard() {
         <Link to="/challenge" className="glass quick-card"><div className="qicon">⚔️</div><div className="qtitle">Reto 1 vs 1</div><div className="qsub">Mismas preguntas, un ganador</div></Link>
         <Link to="/ranking" className="glass quick-card"><div className="qicon">🏆</div><div className="qtitle">Ranking</div><div className="qsub">¿Quién avanzó más?</div></Link>
         <Link to="/progress" className="glass quick-card"><div className="qicon">📈</div><div className="qtitle">Mi progreso</div><div className="qsub">Dominio por tema</div></Link>
+        
+        {/* Atajo directo para calificar la capacitación */}
+        <button 
+          type="button" 
+          className="glass quick-card" 
+          onClick={() => setShowFeedbackModal(true)}
+          style={{ textAlign: 'left', cursor: 'pointer', border: '1px solid rgba(255, 193, 7, 0.3)' }}
+        >
+          <div className="qicon">⭐</div>
+          <div className="qtitle">Calificar capacitación</div>
+          <div className="qsub">Evalúa el material de estudio</div>
+        </button>
       </div>
 
       {reco && (
@@ -108,6 +125,14 @@ export default function Dashboard() {
             </Link>
           ))}
         </div>
+      )}
+
+      {/* Modal interactivo de estrellas */}
+      {showFeedbackModal && (
+        <TrainingFeedbackModal
+          uid={profile.id}
+          onClose={() => setShowFeedbackModal(false)}
+        />
       )}
     </div>
   );

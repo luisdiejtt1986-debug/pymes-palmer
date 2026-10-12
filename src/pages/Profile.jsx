@@ -15,13 +15,19 @@ export default function Profile() {
   const { profile } = useAuth();
   const { theme, setTheme } = useTheme();
   const toast = useToast();
-  const [name, setName] = useState(profile.name);
+  const [name, setName] = useState(profile?.name || '');
   const [busy, setBusy] = useState(false);
   const k = playerKpis(profile);
 
   const save = async (patch, okMsg) => {
     setBusy(true);
-    try { await updateOwnProfile(profile.id, patch); toast.success(okMsg); } catch (e) { console.error(e); toast.error('No se pudo guardar el cambio.'); }
+    try { 
+      await updateOwnProfile(profile.id, patch); 
+      toast.success(okMsg); 
+    } catch (e) { 
+      console.error(e); 
+      toast.error('No se pudo guardar el cambio.'); 
+    }
     setBusy(false);
   };
 
@@ -29,6 +35,17 @@ export default function Profile() {
     ['Partidas', k.gamesPlayed], ['Precisión', `${k.accuracy}%`], ['Respuestas correctas', k.correct], ['Mejor racha', `${k.bestStreak} d`],
     ['Mejor puntuación', k.bestScore], ['Tiempo promedio', `${k.avgTime}s`], ['Temas dominados', k.mastered], ['XP total', k.xp],
   ];
+
+  // Formateador seguro de fecha para evitar errores si el timestamp de Firestore viene crudo
+  const getFormattedDate = (dateVal) => {
+    if (!dateVal) return 'Reciente';
+    try {
+      if (dateVal.seconds) return fmtDate(dateVal, false);
+      return fmtDate(dateVal, false);
+    } catch {
+      return 'Reciente';
+    }
+  };
 
   return (
     <div className="page wide fade-in">
@@ -39,7 +56,7 @@ export default function Profile() {
             <div className="user-name" style={{ fontSize: 24 }}>{profile.name}</div>
             <div className="small muted">{profile.email}</div>
             <div className="level-pill"><span className="dot" />Nivel {profile.level} · {profile.levelName}</div>
-            <div className="small muted" style={{ marginTop: 6 }}>Miembro desde {fmtDate(profile.createdAt, false)}</div>
+            <div className="small muted" style={{ marginTop: 6 }}>Miembro desde {getFormattedDate(profile.createdAt)}</div>
           </div>
         </div>
         <XpBar xp={profile.xp} />

@@ -14,6 +14,7 @@ const ITEMS = [
   { to: '/admin/ranking', label: 'Ranking', ico: '🏆' },
   { to: '/admin/achievements', label: 'Logros', ico: '🎖️' },
   { to: '/admin/parameters', label: 'Parámetros', ico: '⚙️' },
+  { to: '/admin/feedbacks', label: 'Evaluaciones', ico: '⭐' }, // <-- ¡Nuevo ítem para ver las estrellitas y comentarios!
   { to: '/admin/import', label: 'Importar preguntas', ico: '📥' },
   { to: '/admin/export', label: 'Exportar datos', ico: '📤' },
   { to: '/admin/audit', label: 'Auditoría', ico: '🧾' },

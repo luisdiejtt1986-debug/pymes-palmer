@@ -117,4 +117,43 @@ export async function getPublicProfile(uid) {
   return s.exists() ? { id: s.id, ...s.data() } : null;
 }
 
+/* --------------------- Feedback de Capacitación --------------------- */
+
+/** Registra la calificación (1-5 estrellas) y comentario sobre la capacitación realizada */
+export async function submitTrainingFeedback(uid, { rating, comment }) {
+  const feedbackId = `${uid}_${Date.now()}`;
+  await setDoc(doc(db, 'trainingFeedbacks', feedbackId), {
+    uid,
+    rating,
+    comment: comment?.trim() || '',
+    createdAt: nowTs(),
+  });
+}
+
+/** Obtiene las calificaciones enviadas para la vista de Administración con nombre y correo */
+export async function listTrainingFeedbacks(max = 100) {
+  const snap = await getDocs(
+    query(collection(db, 'trainingFeedbacks'), orderBy('createdAt', 'desc'), limit(max))
+  );
+
+  const feedbacks = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+  // Consultamos la colección privada 'users' para extraer nombres y correos exactos
+  const usersSnap = await getDocs(collection(db, 'users'));
+  const userMap = {};
+  usersSnap.forEach((doc) => {
+    userMap[doc.id] = doc.data();
+  });
+
+  return feedbacks.map((fb) => {
+    const uData = userMap[fb.uid] || {};
+    return {
+      ...fb,
+      userName: uData.name || 'Usuario',
+      userEmail: uData.email || '',
+      userAvatar: uData.avatar || '',
+    };
+  });
+}
+
 export { setDoc };

@@ -28,6 +28,7 @@ const AdminQuestions = lazy(() => import('./admin/AdminQuestions.jsx'));
 const AdminGames = lazy(() => import('./admin/AdminGames.jsx'));
 const AdminAchievements = lazy(() => import('./admin/AdminAchievements.jsx'));
 const AdminParameters = lazy(() => import('./admin/AdminParameters.jsx'));
+const AdminFeedbacks = lazy(() => import('./admin/AdminFeedbacks.jsx')); // <-- 1. Importamos el componente de evaluaciones
 const AdminImport = lazy(() => import('./admin/AdminImport.jsx'));
 const AdminExport = lazy(() => import('./admin/AdminExport.jsx'));
 const AdminAudit = lazy(() => import('./admin/AdminAudit.jsx'));
@@ -68,6 +69,7 @@ export default function App() {
           <Route path="ranking" element={<Ranking embedded />} />
           <Route path="achievements" element={<AdminAchievements />} />
           <Route path="parameters" element={<AdminParameters />} />
+          <Route path="feedbacks" element={<AdminFeedbacks />} /> {/* <-- 2. Añadimos la ruta para las evaluaciones */}
           <Route path="import" element={<AdminImport />} />
           <Route path="export" element={<AdminExport />} />
           <Route path="audit" element={<AdminAudit />} />
