@@ -37,27 +37,85 @@ export default function Login() {
   };
 
   return (
-    <div className="auth-wrap">
-      <div className="glass auth-card fade-in">
-        <div className="row"><BrandMark /><span className="spacer" /><ThemeToggle /></div>
-        <h1>Bienvenido de vuelta</h1>
-        <p className="muted" style={{ marginBottom: 20 }}>Inicia sesión para continuar tu ascenso.</p>
-        <form className="stack" onSubmit={submit} noValidate>
-          <Field label="Correo" htmlFor="email">
-            <input id="email" className="input" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </Field>
-          <Field label="Contraseña" htmlFor="password">
-            <input id="password" className="input" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </Field>
-          {error && <div className="alert error" role="alert">{error}</div>}
-          <button className="cta-main" style={{ marginTop: 4 }} disabled={busy}>
-            <span className="shine" />{busy ? 'Entrando…' : 'Iniciar sesión'}
-          </button>
-        </form>
-        <div className="row wrap" style={{ marginTop: 16, justifyContent: 'space-between', fontSize: 14 }}>
-          <button className="btn-ghost muted" style={{ textDecoration: 'underline' }} onClick={forgot} type="button">Olvidé mi contraseña</button>
-          <Link to="/register" style={{ color: 'var(--teal)', fontWeight: 700 }}>Crear cuenta</Link>
+    <div className="popout-login-page">
+      {/* Luz ambiental de fondo */}
+      <div className="bg-sun-glow"></div>
+
+      {/* Tarjeta Principal Flotante */}
+      <div className="popout-card-wrapper fade-in">
+        
+        {/* Controles superiores */}
+        <div className="popout-top-bar">
+          <BrandMark />
+          <span className="spacer" />
+          <ThemeToggle />
         </div>
+
+        {/* Encabezado con título corporativo en tono verde */}
+        <div className="popout-header">
+          <h1 className="welcome-title-green">Bienvenido de vuelta</h1>
+          <p className="muted">Inicia sesión para continuar tu ascenso</p>
+        </div>
+
+        {/* Personaje 3D optimizado y más cercano */}
+        <div className="character-popout-box">
+          <img 
+            src="/personaje-popout.png" 
+            alt="Personaje Codesarrollo" 
+            className="character-popout-img"
+          />
+        </div>
+
+        {/* Formulario de Acceso */}
+        <div className="popout-form-card">
+          <form className="stack" onSubmit={submit} noValidate>
+            <Field label="Correo" htmlFor="email">
+              <input 
+                id="email" 
+                className="input popout-input" 
+                type="email" 
+                autoComplete="email" 
+                placeholder="tu@correo.com"
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+              />
+            </Field>
+
+            <Field label="Contraseña" htmlFor="password">
+              <input 
+                id="password" 
+                className="input popout-input" 
+                type="password" 
+                autoComplete="current-password" 
+                placeholder="••••••••••••"
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+              />
+            </Field>
+
+            {error && <div className="alert error" role="alert">{error}</div>}
+
+            <button className="cta-main popout-cta-btn" disabled={busy}>
+              <span className="shine" />
+              {busy ? 'Entrando…' : 'Iniciar sesión'}
+            </button>
+          </form>
+
+          <div className="popout-footer-links">
+            <button className="btn-ghost muted" style={{ textDecoration: 'underline', cursor: 'pointer' }} onClick={forgot} type="button">
+              Olvidé mi contraseña
+            </button>
+            <Link to="/register" className="teal-highlight">
+              Crear cuenta
+            </Link>
+          </div>
+        </div>
+
+        {/* Pie de página institucional */}
+        <div className="login-legal-footer">
+          <span>Ing. Diego Jiménez • Banco Codesarrollo 2026</span>
+        </div>
+
       </div>
     </div>
   );

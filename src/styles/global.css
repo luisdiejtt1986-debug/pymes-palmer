@@ -464,3 +464,171 @@ table.tbl{ width:100%; border-collapse:collapse; font-size:13.5px; min-width:640
 code, .code{ font-family:var(--font-mono); font-size:12.5px; background:var(--surface-2); padding:2px 7px; border-radius:7px; border:1px solid var(--border); }
 .code-big{ font-family:var(--font-mono); font-size:34px; font-weight:700; letter-spacing:.25em; padding:12px 18px; border-radius:16px; background:var(--surface-2); border:1.5px dashed var(--teal); color:var(--teal); display:inline-block; }
 .footer-note{ text-align:center; font-size:12px; color:var(--text-2); margin-top:30px; line-height:1.6; }
+
+
+
+/* ============================================================
+   ESTILOS FINALES: ARMONÍA, VERDE CORPORATIVO Y COMPACTO
+   ============================================================ */
+
+.popout-login-page {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow-x: hidden;
+  padding: 16px;
+}
+
+/* Brillo ambiental sutil */
+.bg-sun-glow {
+  position: absolute;
+  top: -100px;
+  right: -100px;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(0, 230, 118, 0.12) 0%, rgba(0, 114, 206, 0.06) 50%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Tarjeta Principal */
+.popout-card-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  background: var(--surface);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid var(--border-strong);
+  border-radius: 24px;
+  padding: 16px 16px 18px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.popout-top-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.popout-header {
+  text-align: center;
+  margin-bottom: 0px; /* Reducido para juntar el texto al personaje */
+}
+
+/* Título de bienvenida con el color verde institucional del banco */
+.welcome-title-green {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--teal) !important; /* Aplica el verde corporativo */
+  margin-bottom: 1px;
+}
+
+.popout-header .muted {
+  font-size: 12px;
+}
+
+/* Personaje 3D más pequeño y pegado al texto */
+.character-popout-box {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  margin-top: -15px;
+  margin-bottom: -45px; /* Ajustado para que el solape sea exacto y cercano */
+  z-index: 3;
+  pointer-events: none;
+}
+
+.character-popout-img {
+  width: 100%;
+  max-width: 250px; /* Tamaño más compacto y proporcionado */
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 7px 12px rgba(0, 0, 0, 0.35));
+}
+
+/* Tarjeta Interna del Formulario */
+.popout-form-card {
+  position: relative;
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 34px 16px 16px 16px; /* Padding superior ajustado */
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.05), 0 6px 16px rgba(0, 0, 0, 0.16);
+  z-index: 2;
+}
+
+.popout-input {
+  border-radius: 12px !important;
+  background: var(--input-bg) !important;
+  border: 1.5px solid var(--border) !important;
+  padding: 8px 12px !important;
+  min-height: 38px !important;
+}
+
+.popout-input:focus {
+  border-color: var(--teal) !important;
+  box-shadow: 0 0 0 3px rgba(34, 224, 196, 0.2) !important;
+}
+
+.popout-cta-btn {
+  margin-top: 4px !important;
+  border-radius: 12px !important;
+  min-height: 38px !important;
+  background: linear-gradient(120deg, #0072ce 0%, #009640 100%) !important;
+}
+
+.popout-footer-links {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  font-size: 12.5px;
+}
+
+.teal-highlight {
+  color: var(--teal);
+  font-weight: 700;
+}
+
+/* Pie de página institucional */
+.login-legal-footer {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-2);
+  letter-spacing: 0.3px;
+  opacity: 0.75;
+}
+
+/* Adaptabilidad limpia para PC */
+@media (min-width: 768px) {
+  .popout-card-wrapper {
+    max-width: 390px;
+    padding: 18px 18px 20px;
+  }
+
+  .character-popout-img {
+    max-width: 155px;
+  }
+
+  .character-popout-box {
+    margin-bottom: -27px;
+  }
+
+  .popout-form-card {
+    padding: 36px 18px 18px 18px;
+  }
+}
