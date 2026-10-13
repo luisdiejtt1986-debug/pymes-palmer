@@ -47,7 +47,7 @@ export default function Dashboard() {
         videoRef.current.srcObject = stream;
       }
     } catch (err) {
-      console.error('No se pudo acceder à la cámara:', err);
+      console.error('No se pudo acceder a la cámara:', err);
     }
   };
 
@@ -76,25 +76,23 @@ export default function Dashboard() {
     stopCamera();
   };
 
-  // Guardar la foto en la base de datos y cerrar el modal
+  // Guardar la foto en la base de datos y cerrar el modal sin recargar la página (evita el 404 en móviles)
   const savePhotoAndClose = async (withPhoto = false) => {
     setBusyPhoto(true);
     try {
       if (withPhoto && photoData && profile?.id) {
-        // Guardamos la foto real en base64
+        // Guardamos la foto real en base64 en Firestore
         await updateDoc(doc(db, 'users', profile.id), { avatar: photoData });
         try {
           await updateDoc(doc(db, 'publicProfiles', profile.id), { avatar: photoData });
         } catch (e) {
           console.error(e);
         }
-        window.location.reload();
-      } else {
-        // Si decide omitir por ahora, simplemente cerramos el modal sin guardar nada permanente
-        // (así se le volverá a recordar en futuras sesiones hasta que suba su foto)
-        stopCamera();
-        setShowPhotoModal(false);
+        // Actualizamos de forma optimista el perfil localmente para que se refleje de inmediato
+        profile.avatar = photoData;
       }
+      stopCamera();
+      setShowPhotoModal(false);
     } catch (err) {
       console.error(err);
       setShowPhotoModal(false);
