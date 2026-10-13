@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../firebase/config.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useParams2 } from '../context/ParamsContext.jsx';
 import { Avatar, EmptyState, ErrorState, Loading, Badge } from '../components/Ui.jsx';
@@ -18,6 +20,88 @@ export default function Dashboard() {
 
   // Estado para controlar la visibilidad del modal de calificación
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+
+  // Estados para el modal obligatorio/opcional de foto si el usuario no tiene avatar
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [photoData, setPhotoData] = useState(null);
+  const [busyPhoto, setBusyPhoto] = useState(false);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+
+  // Al cargar el perfil, mostramos el modal cada vez que no tenga una foto real configurada
+  useEffect(() => {
+    if (profile) {
+      const hasNoPhoto = !profile.avatar || profile.avatar === '' || profile.avatar === 'omitted';
+      if (hasNoPhoto) {
+        setShowPhotoModal(true);
+        startCamera();
+      }
+    }
+  }, [profile]);
+
+  // Iniciar la cámara web
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 300, height: 300 } });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      console.error('No se pudo acceder à la cámara:', err);
+    }
+  };
+
+  // Apagar la cámara al salir
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject;
+      stream.getTracks().forEach((track) => track.stop());
+    }
+  };
+
+  // Capturar foto y comprimirla a baja resolución (JPEG optimizado)
+  const capturePhoto = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    const context = canvas.getContext('2d');
+    canvas.width = 150;
+    canvas.height = 150;
+    context.drawImage(video, 0, 0, 150, 150);
+
+    // Convertir a base64 comprimido en JPEG (calidad 0.7 para que pese muy poco)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+    setPhotoData(dataUrl);
+    stopCamera();
+  };
+
+  // Guardar la foto en la base de datos y cerrar el modal
+  const savePhotoAndClose = async (withPhoto = false) => {
+    setBusyPhoto(true);
+    try {
+      if (withPhoto && photoData && profile?.id) {
+        // Guardamos la foto real en base64
+        await updateDoc(doc(db, 'users', profile.id), { avatar: photoData });
+        try {
+          await updateDoc(doc(db, 'publicProfiles', profile.id), { avatar: photoData });
+        } catch (e) {
+          console.error(e);
+        }
+        window.location.reload();
+      } else {
+        // Si decide omitir por ahora, simplemente cerramos el modal sin guardar nada permanente
+        // (así se le volverá a recordar en futuras sesiones hasta que suba su foto)
+        stopCamera();
+        setShowPhotoModal(false);
+      }
+    } catch (err) {
+      console.error(err);
+      setShowPhotoModal(false);
+    } finally {
+      setBusyPhoto(false);
+    }
+  };
 
   const { data, loading, error, reload } = useAsync(async () => {
     const [active, games, mastery, catalog] = await Promise.all([
@@ -38,7 +122,7 @@ export default function Dashboard() {
     <div className="page wide">
       <div className="glass user-card fade-in">
         <div className="user-row">
-          <Avatar avatar={profile.avatar} name={profile.name} />
+          <Avatar avatar={profile.avatar === 'omitted' ? null : profile.avatar} name={profile.name} />
           <div className="user-meta">
             <div className="user-greeting">¡Hola de nuevo!</div>
             <div className="user-name">{profile.name}</div>
@@ -133,6 +217,74 @@ export default function Dashboard() {
           uid={profile.id}
           onClose={() => setShowFeedbackModal(false)}
         />
+      )}
+
+      {/* Modal bloqueante de captura de foto al primer ingreso */}
+      {showPhotoModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          background: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999
+        }}>
+          <div className="glass auth-card fade-in" style={{ 
+            textAlign: 'center', 
+            maxWidth: 400, 
+            width: '90%', 
+            padding: 24,
+            background: 'var(--card-bg, #1e1e24)',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
+          }}>
+            <h2 className="display" style={{ fontSize: 22, marginBottom: 8, color: 'var(--text, #fff)' }}>Foto de Perfil Requerida</h2>
+            <p className="muted" style={{ marginBottom: 20, fontSize: 14 }}>Tómate una foto rápida para que tus compañeros del Banco Codesarrollo te reconozcan en el ranking.</p>
+
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+              {photoData ? (
+                <img src={photoData} alt="Foto capturada" style={{ width: 150, height: 150, borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--teal)' }} />
+              ) : (
+                <video ref={videoRef} autoPlay playsInline muted style={{ width: 150, height: 150, borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--border)' }} />
+              )}
+              <canvas ref={canvasRef} style={{ display: 'none' }} />
+            </div>
+
+            <div className="stack" style={{ gap: 10 }}>
+              {!photoData ? (
+                <button type="button" className="cta-main" onClick={capturePhoto}>
+                  📸 Tomar Foto
+                </button>
+              ) : (
+                <button type="button" className="btn" onClick={() => { setPhotoData(null); startCamera(); }}>
+                  🔄 Repetir Foto
+                </button>
+              )}
+
+              <button 
+                type="button" 
+                className="btn btn-primary" 
+                disabled={busyPhoto || !photoData} 
+                onClick={() => savePhotoAndClose(true)}
+              >
+                {busyPhoto ? 'Guardando...' : 'Guardar y Continuar'}
+              </button>
+
+              <button 
+                type="button" 
+                className="btn" 
+                style={{ 
+                  background: 'transparent', 
+                  border: '1px solid var(--border, #444)', 
+                  cursor: 'pointer', 
+                  color: 'var(--text-muted, #aaa)',
+                  padding: '10px',
+                  borderRadius: '8px'
+                }} 
+                disabled={busyPhoto}
+                onClick={() => savePhotoAndClose(false)}
+              >
+                Omitir por ahora
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

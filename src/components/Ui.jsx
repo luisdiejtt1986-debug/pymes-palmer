@@ -38,7 +38,22 @@ export function EmptyState({ icon = '🏔️', title, text, action }) {
 
 export function Avatar({ avatar, name = '', size = '' }) {
   const initials = (name || '?').trim().split(/\s+/).slice(0, 2).map((s) => s[0]?.toUpperCase()).join('');
-  return <div className={`avatar ${size}`} aria-hidden="true">{avatar || initials}</div>;
+  
+  // Si tenemos una foto válida en base64 (o URL), mostramos la imagen dentro del avatar
+  if (avatar && avatar.startsWith('data:image')) {
+    return (
+      <div className={`avatar ${size}`} aria-hidden="true" style={{ padding: 0, overflow: 'hidden' }}>
+        <img 
+          src={avatar} 
+          alt={name || 'Avatar'} 
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+        />
+      </div>
+    );
+  }
+
+  // De lo contrario, mostramos las iniciales estándar del usuario
+  return <div className={`avatar ${size}`} aria-hidden="true">{initials}</div>;
 }
 
 export function Modal({ title, onClose, children, big = false }) {
