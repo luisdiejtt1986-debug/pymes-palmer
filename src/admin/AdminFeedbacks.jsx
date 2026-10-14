@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAsync } from '../hooks/useAsync.js';
 import { listTrainingFeedbacks } from '../services/userService.js';
-import { Avatar, EmptyState, ErrorState, Loading } from '../components/Ui.jsx';
+import { Avatar, EmptyState, ErrorState, Loading, Badge } from '../components/Ui.jsx';
 import { fmtDate } from '../utils/game.js';
 
 export default function AdminFeedbacks() {
@@ -17,7 +17,7 @@ export default function AdminFeedbacks() {
   const total = feedbacks.length;
   const avgRating = (feedbacks.reduce((acc, f) => acc + (f.rating || 0), 0) / total).toFixed(1);
 
-  // Función para exportar las evaluaciones a Excel (XLSX)
+  // Función para exportar las evaluaciones a Excel (XLSX) con la categoría incluida
   const exportToExcel = async () => {
     setExporting(true);
     try {
@@ -27,6 +27,7 @@ export default function AdminFeedbacks() {
         'N°': index + 1,
         'Colaborador': item.userName,
         'Correo': item.userEmail || '',
+        'Capacitación / Categoría': item.categoryId || 'General',
         'Calificación (Estrellas)': item.rating,
         'Comentario': item.comment || 'Sin comentario',
         'Fecha y Hora': item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleString() : 'Reciente',
@@ -70,14 +71,18 @@ export default function AdminFeedbacks() {
         </button>
       </div>
 
-      {/* Lista detallada de feedbacks */}
+      {/* Lista detallada de feedbacks con indicador de categoría */}
       <div className="stack-sm">
         {feedbacks.map((item) => (
           <div key={item.id} className="glass glass-tight list-item" style={{ alignItems: 'flex-start', padding: 14 }}>
             <Avatar avatar={item.userAvatar} name={item.userName} size="sm" />
             <div className="li-main">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
-                <span className="li-title">{item.userName}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span className="li-title">{item.userName}</span>
+                  {/* Badge con la categoría evaluada */}
+                  <Badge tone="info">{item.categoryId || 'General'}</Badge>
+                </div>
                 <span className="small muted">{item.createdAt ? fmtDate(item.createdAt) : 'Reciente'}</span>
               </div>
               <div className="small muted" style={{ marginBottom: 6, fontSize: '12px' }}>

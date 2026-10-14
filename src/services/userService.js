@@ -119,11 +119,12 @@ export async function getPublicProfile(uid) {
 
 /* --------------------- Feedback de Capacitación --------------------- */
 
-/** Registra la calificación (1-5 estrellas) y comentario sobre la capacitación realizada */
-export async function submitTrainingFeedback(uid, { rating, comment }) {
+/** Registra la calificación (1-5 estrellas), categoría y comentario sobre la capacitación realizada */
+export async function submitTrainingFeedback(uid, { categoryId, rating, comment }) {
   const feedbackId = `${uid}_${Date.now()}`;
   await setDoc(doc(db, 'trainingFeedbacks', feedbackId), {
     uid,
+    categoryId: categoryId || 'general',
     rating,
     comment: comment?.trim() || '',
     createdAt: nowTs(),

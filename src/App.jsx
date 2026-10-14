@@ -1,8 +1,11 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { auth } from './firebase/config.js';
 import { useAuth } from './context/AuthContext.jsx';
 import { PublicOnly, RequireAdmin, RequireAuth } from './components/Guards.jsx';
 import { Loading } from './components/Ui.jsx';
+import { useIdleTimeout } from './hooks/useIdleTimeout.js';
 import PlayerLayout from './layouts/PlayerLayout.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
@@ -28,13 +31,25 @@ const AdminQuestions = lazy(() => import('./admin/AdminQuestions.jsx'));
 const AdminGames = lazy(() => import('./admin/AdminGames.jsx'));
 const AdminAchievements = lazy(() => import('./admin/AdminAchievements.jsx'));
 const AdminParameters = lazy(() => import('./admin/AdminParameters.jsx'));
-const AdminFeedbacks = lazy(() => import('./admin/AdminFeedbacks.jsx')); // <-- 1. Importamos el componente de evaluaciones
+const AdminFeedbacks = lazy(() => import('./admin/AdminFeedbacks.jsx'));
 const AdminImport = lazy(() => import('./admin/AdminImport.jsx'));
 const AdminExport = lazy(() => import('./admin/AdminExport.jsx'));
 const AdminAudit = lazy(() => import('./admin/AdminAudit.jsx'));
 
 export default function App() {
   const { configured } = useAuth();
+
+  // Control de inactividad: Cierra sesión automáticamente tras 10 minutos sin interacción
+  useIdleTimeout(async () => {
+    try {
+      await signOut(auth);
+      alert('Tu sesión ha expirado por inactividad (10 minutos). Por seguridad, se ha cerrado la sesión.');
+      window.location.href = '/login';
+    } catch (err) {
+      console.error('Error al cerrar sesión por inactividad:', err);
+    }
+  }, 10);
+
   if (!configured) return <ConfigMissing />;
 
   return (
@@ -69,7 +84,7 @@ export default function App() {
           <Route path="ranking" element={<Ranking embedded />} />
           <Route path="achievements" element={<AdminAchievements />} />
           <Route path="parameters" element={<AdminParameters />} />
-          <Route path="feedbacks" element={<AdminFeedbacks />} /> {/* <-- 2. Añadimos la ruta para las evaluaciones */}
+          <Route path="feedbacks" element={<AdminFeedbacks />} />
           <Route path="import" element={<AdminImport />} />
           <Route path="export" element={<AdminExport />} />
           <Route path="audit" element={<AdminAudit />} />

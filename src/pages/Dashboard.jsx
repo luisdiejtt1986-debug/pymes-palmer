@@ -209,10 +209,11 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Modal interactivo de estrellas */}
-      {showFeedbackModal && (
+      {/* Modal interactivo de estrellas con el catálogo de temas */}
+      {showFeedbackModal && catalog && (
         <TrainingFeedbackModal
           uid={profile.id}
+          catalog={catalog}
           onClose={() => setShowFeedbackModal(false)}
         />
       )}

@@ -1,19 +1,32 @@
 import { useState } from 'react';
 import { submitTrainingFeedback } from '../services/userService.js';
 
-export default function TrainingFeedbackModal({ uid, onClose }) {
+export default function TrainingFeedbackModal({ uid, catalog, onClose }) {
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [comment, setComment] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  // Extraemos únicamente las categorías activas del catálogo
+  const categoriesList = catalog?.categories ? catalog.categories.filter(c => c.active) : [];
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (rating === 0) return;
+    if (!selectedCategory || rating === 0) return;
+    
+    // Buscamos el nombre de la categoría seleccionada a partir del ID del <select>
+    const foundCat = categoriesList.find(c => (c.id || c.name) === selectedCategory);
+    const categoryName = foundCat ? foundCat.name : selectedCategory;
+
     setBusy(true);
     try {
-      await submitTrainingFeedback(uid, { rating, comment });
+      await submitTrainingFeedback(uid, { 
+        categoryId: categoryName, // Guardamos el nombre amigable directamente
+        rating, 
+        comment 
+      });
       setSubmitted(true);
       setTimeout(() => {
         if (onClose) onClose();
@@ -54,12 +67,40 @@ export default function TrainingFeedbackModal({ uid, onClose }) {
         ) : (
           <form onSubmit={handleSubmit} className="stack">
             <h2 style={{ fontSize: '20px', marginBottom: '4px' }}>Califica la Capacitación</h2>
-            <p className="muted" style={{ fontSize: '13px', marginBottom: '16px' }}>
-              ¿Qué tan claro y útil te pareció el material de estudio?
+            <p className="muted" style={{ fontSize: '13px', marginBottom: '12px' }}>
+              Selecciona la categoría y califica qué tan claro y útil te pareció el material de estudio.
             </p>
 
+            {/* Selector de Categoría Principal */}
+            <div className="field" style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, marginBottom: '6px', color: 'var(--text, #fff)' }}>
+                Capacitación (Categoría):
+              </label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                required
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  borderRadius: '8px',
+                  background: 'var(--card-bg, #1e1e24)',
+                  color: 'var(--text, #fff)',
+                  border: '1px solid var(--border, #444)',
+                  fontSize: '14px'
+                }}
+              >
+                <option value="">-- Selecciona una categoría --</option>
+                {categoriesList.map((cat) => (
+                  <option key={cat.id || cat.name} value={cat.id || cat.name}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Selector de Estrellas */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', margin: '12px 0 20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', margin: '8px 0 16px' }}>
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   type="button"
@@ -96,8 +137,8 @@ export default function TrainingFeedbackModal({ uid, onClose }) {
             <button
               className="cta-main"
               type="submit"
-              disabled={rating === 0 || busy}
-              style={{ marginTop: '12px', opacity: rating === 0 ? 0.5 : 1 }}
+              disabled={!selectedCategory || rating === 0 || busy}
+              style={{ marginTop: '12px', opacity: (!selectedCategory || rating === 0) ? 0.5 : 1 }}
             >
               <span className="shine" />
               {busy ? 'Guardando…' : 'Enviar calificación'}
