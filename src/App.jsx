@@ -20,6 +20,7 @@ import Review from './pages/Review.jsx';
 import Challenge from './pages/Challenge.jsx';
 import Compare from './pages/Compare.jsx';
 import ConfigMissing from './pages/ConfigMissing.jsx';
+import LiveGamePlayer from './pages/LiveGamePlayer.jsx'; // <-- Importamos la vista del jugador para el concurso en vivo
 
 // El panel administrativo se carga bajo demanda: los jugadores nunca descargan ese código.
 const AdminLayout = lazy(() => import('./layouts/AdminLayout.jsx'));
@@ -35,6 +36,7 @@ const AdminFeedbacks = lazy(() => import('./admin/AdminFeedbacks.jsx'));
 const AdminImport = lazy(() => import('./admin/AdminImport.jsx'));
 const AdminExport = lazy(() => import('./admin/AdminExport.jsx'));
 const AdminAudit = lazy(() => import('./admin/AdminAudit.jsx'));
+const AdminLiveControl = lazy(() => import('./admin/AdminLiveControl.jsx')); // <-- Importamos el panel de control en vivo del admin
 
 export default function App() {
   const { configured } = useAuth();
@@ -71,6 +73,7 @@ export default function App() {
           <Route path="/review" element={<Review />} />
           <Route path="/challenge" element={<Challenge />} />
           <Route path="/compare" element={<Compare />} />
+          <Route path="/live/:roomId" element={<LiveGamePlayer />} /> {/* <-- Ruta para que el jugador entre a la sala interactiva */}
         </Route>
 
         <Route path="/admin" element={<RequireAuth><RequireAdmin><AdminLayout /></RequireAdmin></RequireAuth>}>
@@ -85,6 +88,7 @@ export default function App() {
           <Route path="achievements" element={<AdminAchievements />} />
           <Route path="parameters" element={<AdminParameters />} />
           <Route path="feedbacks" element={<AdminFeedbacks />} />
+          <Route path="live" element={<AdminLiveControl />} /> {/* <-- Ruta para que el admin gestione las partidas en vivo */}
           <Route path="import" element={<AdminImport />} />
           <Route path="export" element={<AdminExport />} />
           <Route path="audit" element={<AdminAudit />} />

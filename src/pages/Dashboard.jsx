@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/config.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useParams2 } from '../context/ParamsContext.jsx';
@@ -21,6 +21,9 @@ export default function Dashboard() {
   // Estado para controlar la visibilidad del modal de calificación
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
+  // Estado para las salas en vivo activas (Modo Buzzer)
+  const [activeLiveRoom, setActiveLiveRoom] = useState(null);
+
   // Estados para el modal obligatorio/opcional de foto si el usuario no tiene avatar
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [photoData, setPhotoData] = useState(null);
@@ -38,6 +41,29 @@ export default function Dashboard() {
       }
     }
   }, [profile]);
+
+  // Escuchar en tiempo real la sala en vivo más reciente que esté en espera o activa
+  useEffect(() => {
+    const q = query(
+      collection(db, 'liveRooms'),
+      where('status', 'in', ['waiting', 'active']),
+      orderBy('createdAt', 'desc'),
+      limit(1)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        const roomDoc = snapshot.docs[0];
+        setActiveLiveRoom({ id: roomDoc.id, ...roomDoc.data() });
+      } else {
+        setActiveLiveRoom(null);
+      }
+    }, (err) => {
+      console.error('Error al escuchar salas en vivo (asegúrate de que exista el índice o campo createdAt):', err);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Iniciar la cámara web
   const startCamera = async () => {
@@ -70,25 +96,22 @@ export default function Dashboard() {
     canvas.height = 150;
     context.drawImage(video, 0, 0, 150, 150);
 
-    // Convertir a base64 comprimido en JPEG (calidad 0.7 para que pese muy poco)
     const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
     setPhotoData(dataUrl);
     stopCamera();
   };
 
-  // Guardar la foto en la base de datos y cerrar el modal sin recargar la página (evita el 404 en móviles)
+  // Guardar la foto en la base de datos y cerrar el modal sin recargar la página
   const savePhotoAndClose = async (withPhoto = false) => {
     setBusyPhoto(true);
     try {
       if (withPhoto && photoData && profile?.id) {
-        // Guardamos la foto real en base64 en Firestore
         await updateDoc(doc(db, 'users', profile.id), { avatar: photoData });
         try {
           await updateDoc(doc(db, 'publicProfiles', profile.id), { avatar: photoData });
         } catch (e) {
           console.error(e);
         }
-        // Actualizamos de forma optimista el perfil localmente para que se refleje de inmediato
         profile.avatar = photoData;
       }
       stopCamera();
@@ -118,6 +141,50 @@ export default function Dashboard() {
 
   return (
     <div className="page wide">
+      {/* 🔴 Banner dinámico de Concurso en Vivo (Modo Buzzer) */}
+      {activeLiveRoom && (
+        <div 
+          className="glass pad fade-in" 
+          style={{ 
+            background: 'linear-gradient(135deg, rgba(255, 71, 87, 0.25), rgba(255, 107, 129, 0.15))',
+            border: '2px solid #ff4757',
+            borderRadius: '12px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 20,
+            padding: '16px 20px',
+            boxShadow: '0 8px 20px rgba(255, 71, 87, 0.2)'
+          }}
+        >
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontSize: 22 }}>🚨</span>
+              <h3 style={{ margin: 0, color: '#ff6b81', fontSize: 18, fontWeight: 700 }}>
+                ¡CONCURSO EN VIVO DISPONIBLE!
+              </h3>
+            </div>
+            <p className="small muted" style={{ margin: 0, fontSize: 14 }}>
+              Sala: <strong>{activeLiveRoom.title}</strong> — ¡Ingresa ahora y demuestra que eres el más rápido en presionar el botón!
+            </p>
+          </div>
+          <button 
+            className="btn btn-primary"
+            style={{ 
+              background: '#ff4757', 
+              borderColor: '#ff4757',
+              padding: '10px 20px',
+              fontSize: 15,
+              fontWeight: 'bold',
+              cursor: 'pointer'
+            }}
+            onClick={() => nav(`/live/${activeLiveRoom.id}`)}
+          >
+            🚀 Unirse al Concurso
+          </button>
+        </div>
+      )}
+
       <div className="glass user-card fade-in">
         <div className="user-row">
           <Avatar avatar={profile.avatar === 'omitted' ? null : profile.avatar} name={profile.name} />
