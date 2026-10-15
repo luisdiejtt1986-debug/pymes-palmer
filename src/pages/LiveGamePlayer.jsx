@@ -44,7 +44,6 @@ export default function LiveGamePlayer() {
   const handleAnswerOption = async (optionIndex) => {
     if (!currentQ) return;
 
-    // Validación robusta priorizando 'correctAnswer' (que es el campo real de tu Firestore)
     let isCorrect = false;
     let correctVal = undefined;
 
@@ -91,6 +90,29 @@ export default function LiveGamePlayer() {
     );
   }
 
+  // Determinamos el color y estado del botón Buzzer según las reglas de la sala
+  const isBuzzerActive = room.questionActive && !room.buzzerWinner && !isLockedOut;
+  const isSomeoneElseTurn = room.buzzerWinner && !isMyTurn;
+
+  // Estilos dinámicos del botón
+  let buzzerBg = 'radial-gradient(circle, #2ed573 0%, #26af5f 100%)'; // Verde si está disponible
+  let buzzerShadow = '0 10px 30px rgba(46, 213, 115, 0.5)';
+  let buzzerBorder = '8px solid rgba(255, 255, 255, 0.4)';
+  let buzzerText = '🚨 ¡YO SÉ!';
+  let buzzerCursor = 'pointer';
+
+  if (isLockedOut) {
+    buzzerBg = 'radial-gradient(circle, #a4b0be 0%, #747d8c 100%)'; // Gris si está bloqueado/falló
+    buzzerShadow = 'none';
+    buzzerText = '❌ BLOQUEADO';
+    buzzerCursor = 'not-allowed';
+  } else if (isSomeoneElseTurn) {
+    buzzerBg = 'radial-gradient(circle, #ff4757 0%, #ff6b81 100%)'; // Rojo si alguien más ganó
+    buzzerShadow = '0 10px 30px rgba(255, 71, 87, 0.4)';
+    buzzerText = '⏳ OCUPADO';
+    buzzerCursor = 'not-allowed';
+  }
+
   return (
     <div className="page wide" style={{ textAlign: 'center', maxWidth: 600 }}>
       <div className="glass pad" style={{ marginBottom: 20 }}>
@@ -119,37 +141,40 @@ export default function LiveGamePlayer() {
           </div>
         </div>
       ) : isLockedOut ? (
-        <div className="glass pad" style={{ opacity: 0.5 }}>
-          <p style={{ color: '#ff6b6b', fontWeight: 'bold' }}>❌ Fallaste o perdiste el turno en esta pregunta. Espera la siguiente.</p>
+        <div className="glass pad" style={{ opacity: 0.6 }}>
+          <p style={{ color: '#ff6b6b', fontWeight: 'bold', margin: 0 }}>❌ Fallaste o perdiste el turno en esta pregunta. Espera la siguiente.</p>
         </div>
       ) : room.buzzerWinner ? (
         <div className="glass pad">
-          <p style={{ fontSize: 18, color: 'var(--gold)' }}>⚡ <strong>{room.participants?.find(p => p.uid === room.buzzerWinner)?.name || 'Alguien'}</strong> pulsó primero y está respondiendo...</p>
+          <p style={{ fontSize: 18, color: 'var(--gold)', margin: 0 }}>⚡ <strong>{room.participants?.find(p => p.uid === room.buzzerWinner)?.name || 'Alguien'}</strong> pulsó primero y está respondiendo...</p>
         </div>
       ) : (
-        /* Gran Botón Buzzer */
+        /* Gran Botón Buzzer Dinámico (Verde disponible / Rojo ocupado / Gris inactivo) */
         <div style={{ margin: '30px 0' }}>
           <button 
-            onClick={handleBuzzer}
+            onClick={isBuzzerActive ? handleBuzzer : undefined}
+            disabled={!isBuzzerActive}
             style={{
               width: '220px',
               height: '220px',
               borderRadius: '50%',
-              background: 'radial-gradient(circle, #ff4757 0%, #ff6b81 100%)',
-              border: '8px solid rgba(255, 255, 255, 0.3)',
+              background: buzzerBg,
+              border: buzzerBorder,
               color: '#fff',
-              fontSize: '28px',
+              fontSize: '26px',
               fontWeight: 900,
-              cursor: 'pointer',
-              boxShadow: '0 10px 30px rgba(255, 71, 87, 0.5)',
-              transition: 'transform 0.1s',
+              cursor: buzzerCursor,
+              boxShadow: buzzerShadow,
+              transition: 'transform 0.1s, background 0.3s',
             }}
-            onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
-            onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            onMouseDown={(e) => { if (isBuzzerActive) e.currentTarget.style.transform = 'scale(0.95)'; }}
+            onMouseUp={(e) => { if (isBuzzerActive) e.currentTarget.style.transform = 'scale(1)'; }}
           >
-            🚨 ¡YO SÉ!
+            {buzzerText}
           </button>
-          <p className="muted" style={{ marginTop: 16 }}>¡Presiona el botón rápido si sabes la respuesta!</p>
+          <p className="muted" style={{ marginTop: 16 }}>
+            {isBuzzerActive ? '¡El botón está activo! Presiónalo rápido si sabes la respuesta.' : 'Espera a que se habilite el buzzer...'}
+          </p>
         </div>
       )}
     </div>

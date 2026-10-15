@@ -42,16 +42,16 @@ export default function App() {
   const { configured } = useAuth();
 
   // Control de inactividad: Cierra sesión automáticamente tras 10 minutos sin interacción
-  // Usamos una redirección limpia sin alert() para evitar bloqueos y el Error 104 en móviles
+  // Usamos window.location.origin para asegurar que Vercel resuelva la ruta limpia del SPA y evitar el error 404 en móviles
   useIdleTimeout(async () => {
     try {
       await signOut(auth);
       localStorage.clear();
       sessionStorage.clear();
-      window.location.replace('/login');
+      window.location.replace(`${window.location.origin}/login`);
     } catch (err) {
       console.error('Error al cerrar sesión por inactividad:', err);
-      window.location.replace('/login');
+      window.location.replace(`${window.location.origin}/login`);
     }
   }, 10);
 

@@ -181,7 +181,10 @@ export default function AdminLiveControl() {
   const currentQ = roomData?.questions?.[roomData.currentQuestionIndex];
   const winnerUser = roomData?.participants?.find(p => p.uid === roomData.buzzerWinner);
   const lastResult = roomData?.lastAnswerResult;
-  const revealCorrect = (lastResult && lastResult.isCorrect) || (roomData?.lockedOut && roomData.lockedOut.length > 0);
+  
+  // CORRECCIÓN: La respuesta correcta solo se revela si alguien respondió correctamente.
+  // Ya no se revela si alguien falla (lockedOut), permitiendo que el buzzer siga activo para los demás sin spoilear.
+  const revealCorrect = lastResult && lastResult.isCorrect === true;
 
   return (
     <div className="stack fade-in">
