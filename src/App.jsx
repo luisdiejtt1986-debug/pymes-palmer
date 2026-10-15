@@ -42,13 +42,16 @@ export default function App() {
   const { configured } = useAuth();
 
   // Control de inactividad: Cierra sesión automáticamente tras 10 minutos sin interacción
+  // Usamos una redirección limpia sin alert() para evitar bloqueos y el Error 104 en móviles
   useIdleTimeout(async () => {
     try {
       await signOut(auth);
-      alert('Tu sesión ha expirado por inactividad (10 minutos). Por seguridad, se ha cerrado la sesión.');
-      window.location.href = '/login';
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.replace('/login');
     } catch (err) {
       console.error('Error al cerrar sesión por inactividad:', err);
+      window.location.replace('/login');
     }
   }, 10);
 
