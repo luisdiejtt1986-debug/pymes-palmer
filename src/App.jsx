@@ -53,7 +53,7 @@ export default function App() {
       console.error('Error al cerrar sesión por inactividad:', err);
       window.location.replace(`${window.location.origin}/login`);
     }
-  }, 0.1);
+  }, 10);
 
   if (!configured) return <ConfigMissing />;
 
