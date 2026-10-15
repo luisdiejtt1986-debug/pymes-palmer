@@ -2,6 +2,12 @@ import { useEffect, useRef } from 'react';
 
 export function useIdleTimeout(onIdle, timeoutMinutes = 10) {
   const timeoutRef = useRef(null);
+  const onIdleRef = useRef(onIdle);
+
+  // Mantiene la referencia de onIdle siempre actualizada sin reiniciar el temporizador
+  useEffect(() => {
+    onIdleRef.current = onIdle;
+  }, [onIdle]);
 
   const resetTimer = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -10,8 +16,8 @@ export function useIdleTimeout(onIdle, timeoutMinutes = 10) {
     const timeoutMs = timeoutMinutes * 60 * 1000;
 
     timeoutRef.current = setTimeout(() => {
-      if (typeof onIdle === 'function') {
-        onIdle();
+      if (typeof onIdleRef.current === 'function') {
+        onIdleRef.current();
       }
     }, timeoutMs);
   };
@@ -35,5 +41,5 @@ export function useIdleTimeout(onIdle, timeoutMinutes = 10) {
         window.removeEventListener(event, resetTimer);
       });
     };
-  }, [onIdle, timeoutMinutes]);
+  }, [timeoutMinutes]); // Solo depende de timeoutMinutes, evitando reinicios por la función onIdle
 }
